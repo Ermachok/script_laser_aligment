@@ -52,7 +52,7 @@ def ophir_data(file_name:str) -> list:
     return(ophir_time,sht_energy)
 
 data = []
-data.append(ophir_data('534475_51'))
+data.append(ophir_data('534475_50'))
 
 std = 0
 mean = sum(data[0][1]) / len(data[0][1])
@@ -61,7 +61,7 @@ for x in data[0][1]:
     std += (x - mean) ** 2
 std = (std / (len(data[0][1]) - 1)) ** (1 / 2)
 
-#for i in range(len(data[0][1])-1):
-    #print('%.3f' %(data[0][0][i+1] - data[0][0][i]))
+for i in range(len(data[0][1])):
+    print('%.3f' %(data[0][1][i]))
 
 

@@ -80,7 +80,7 @@ class InteractiveLegend(object):
         plt.show()
 
 
-caen_file_number = '00834'
+caen_file_number = '00835'
 msg_files_num = [4, 5, 6, 7]
 config_fiber_poly = {
     '1': '%d' % msg_files_num[0],
@@ -136,7 +136,11 @@ for iteration, (fib_num, msg_num) in enumerate(config_fiber_poly.items()):
             Pk_Pk_noise_data.append(max(signal_data[shot][:noise_road_len]) + abs(min(signal_data[shot][:noise_road_len])))
 
         fig, ax = plt.subplots()
-        for shot in range(140):
+        for shot in range(20):
+            #ax.plot(max(laser_data[shot]), max(signal_data[shot]), 'o')
+            #plt.xlim(0,1000)
+            #plt.ylim(0,1000)
+            #signal_data[shot][:] = [x * 3000/max(laser_data[shot]) for x in signal_data[shot]]
             time = [100 - laser_max_time[shot] * 0.3125 + 0.3125 * t for t in range(1024)]
             ax.plot(time, laser_data[shot], label=r"laser %i".format(shot) % shot, linewidth=0.9)
             ax.plot(time, signal_data[shot], label=r"signal %i" % shot, linewidth=0.9)
