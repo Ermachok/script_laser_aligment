@@ -81,9 +81,8 @@ class InteractiveLegend(object):
         plt.show()
 
 
-caen_file_number = '00829'
+caen_file_number = '00835'
 msg_files_num = [4, 5, 6, 7]
-
 config_fiber_poly = {
     '1': '%d' % msg_files_num[0],
     '2': '%d' % msg_files_num[0],
@@ -97,8 +96,11 @@ config_fiber_poly = {
 
 }
 fibers_1_ch = [1, 6, 11, 1, 6, 6, 11, 1, 6]
+
 all_integrals = []
 Pk_Pk_all_noise = []
+
+all_caen_laser = []
 
 q_e = 1.6E-19
 M_gain = 1E2
@@ -110,59 +112,74 @@ mV_2_V = 1E-3
 ns_2_s = 1E-9
 
 for iteration, (fib_num, msg_num) in enumerate(config_fiber_poly.items()):
-    print(iteration, fib_num, msg_num, fibers_1_ch[iteration])
-    path = Path('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\caen_files\\%s\\%s.msgpk'
-                % (caen_file_number, msg_num))
+    print('iteration %d, '%iteration,'fiber number %s, ' %fib_num, 'caen num %s, ' %msg_num,'fiber ch in caen %s' %fibers_1_ch[iteration])
 
+    path = Path('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\caen_files\\%s\\%s.msgpk'% (caen_file_number, msg_num))
     with path.open(mode='rb') as file:
         data = msgpack.unpackb(file.read())
         file.close()
 
-    ch_num = fibers_1_ch[iteration]
-    laser_data = []
+    #print(len(data))
+
     signal_data = []
+    ch_num = fibers_1_ch[iteration]
     Pk_Pk_noise_data = []
     x_ar = [ind * 0.3125 for ind in range(1024)]
 
-    for shot in range(1, len(data)):
-        laser_data.append(data[shot]['ch'][0])
-        signal_data.append(data[shot]['ch'][ch_num])
-
     noise_road_len = 480
+
+    if int(fib_num) == 1 or int(fib_num) == 4 or int(fib_num) == 6 or int(fib_num) == 8:
+        laser_data = []
+        for shot in range(1, len(data)):
+            laser_data.append(data[shot]['ch'][0])
+
+        for j in range(len(laser_data)):
+            laser_ground = 0
+            for i in range(noise_road_len):
+                laser_ground = laser_ground + float(laser_data[j][i])
+            #print(laser_ground/noise_road_len)
+            laser_data[j][:] = [float(x) - laser_ground / noise_road_len for x in laser_data[j]]
+
+        with open('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\caen_files\\%s\\%s_laser_msg_%s.csv'
+                % (caen_file_number, caen_file_number, msg_num), 'w') as file:
+            for i in range(len(laser_data[ch_num])):
+                row = '%.4f, ' % x_ar[i]
+                for j in range(len(laser_data)):
+                    row = row + '%.3f, ' % (laser_data[j][i])
+                file.write(row + '\n')
+            file.close()
+
+        laser_max = []
+
+        for k in range(len(laser_data)):
+            laser_max.append(max(laser_data[k]))
+
+        with open('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\caen_files\\%s\\%s_rel_laser_max_msg%s.csv'
+                % (caen_file_number, caen_file_number, msg_num), 'w') as file:
+            for l in range(len(laser_max)):
+                row = '%d, %f' % (l, laser_max[l] / max(laser_max))
+                file.write(row + '\n')
+            file.close()
+
+    for shot in range(1, len(data)):
+        signal_data.append(data[shot]['ch'][ch_num])
 
     for j in range(len(signal_data)):
         ground = 0
         for i in range(noise_road_len):
             ground = ground + float(signal_data[j][i])
-        Pk_Pk_noise_data.append(max(signal_data[j][:noise_road_len]) + abs(min(signal_data[j][:noise_road_len])))
         signal_data[j][:] = [float(x) - ground / noise_road_len for x in signal_data[j]]
+        Pk_Pk_noise_data.append(max(signal_data[j][:noise_road_len]) + abs(min(signal_data[j][:noise_road_len])))
 
-    if iteration == 0:
-        with open('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\caen_files\\%s\\laser.csv'
-                  % (caen_file_number), 'w') as file:
-            for i in range(len(laser_data[ch_num])):
-                row = '%f, ' % x_ar[i]
-                for j in range(len(laser_data)):
-                    row = row + '%f, ' % (laser_data[j][i])
-                file.write(row + '\n')
-            file.close()
-
-    laser_max = []
-
-    for k in range(len(laser_data)):
-        laser_max.append(max(laser_data[k]))
-
-    with open('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\caen_files\\%s\\%s_rel_laser_max.csv'
-              % (caen_file_number, caen_file_number), 'w') as file:
-        for l in range(len(laser_max)):
-            row = '%d, %f' % (l, laser_max[l] / max(laser_max))
-            file.write(row + '\n')
 
     borders = [480, 640]
     fig, ax = plt.subplots()
-    for i in range(10):
+    for i in range(5):
         ax.plot(x_ar, laser_data[i], label=r"laser %i".format(i) % i, linewidth=0.9)
         ax.plot(x_ar, signal_data[i], label=r"signal %i" % i, linewidth=0.9)
+        if int(fib_num) == 1:
+            ax.plot(x_ar[laser_data[i].index(max(laser_data[i]))], max(laser_data[i]), 'o')
+            ax.plot(x_ar[signal_data[i].index(max(signal_data[i]))], max(signal_data[i]), 'o')
 
     plt.vlines(x_ar[borders[0]], 0, 300)
     plt.vlines(x_ar[borders[1]], 0, 300)
@@ -172,14 +189,14 @@ for iteration, (fib_num, msg_num) in enumerate(config_fiber_poly.items()):
 
     leg = interactive_legend()
     ax.grid()
-    #plt.show()
+    plt.show()
 
-    with open('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\caen_files\\%s\\1ch_%s_fib.csv'
-              % (caen_file_number, fib_num), 'w') as file:
+    with open('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\caen_files\\%s\\1ch_%s_fib_%s.csv'
+              % (caen_file_number, fib_num,caen_file_number), 'w') as file:
         for i in range(len(signal_data[ch_num])):
             row = '%f, ' % x_ar[i]
             for j in range(len(signal_data)):
-                row = row + '%f, ' % (signal_data[j][i])
+                row = row + '%.3f, ' % (signal_data[j][i])
             file.write(row + '\n')
         file.close()
 
