@@ -3,26 +3,34 @@ import ophir_files_work
 import caen_files_work
 import plots
 
+caen_file_number = '43256'
+ophir_file_name = '534475_68'
 
-caen_file_number = '00824'
-ophir_file_name = '534475_38'
 
-caen_data = caen_files_work.caen_data(caen_file_number)
-ophir_data = ophir_files_work.ophir_data(ophir_file_name)
+def ophir(ophir_fname):
+    ophir_data = ophir_files_work.ophir_data(ophir_fname)
+    ophir_time = ophir_data[0]
+    ophir_signal = ophir_data[1]
 
+    del ophir_data
+    for i in range(len(ophir_signal)):
+        print(ophir_signal[i])
+
+    return ophir_time, ophir_signal
+
+
+fiber_num = 9
+spectral_channel = 2
+
+
+caen_data = caen_files_work.caen_data(caen_file_number, spectral_channel)
 caen_times = caen_data[0]
 caen_laser = caen_data[1]
 caen_signals = caen_data[2]
 caen_noise = caen_data[3]
 
-ophir_time = ophir_data[0]
-ophir_signal = ophir_data[1]
-
-del ophir_data
 del caen_data
 
-fiber_num = 3
-plots.normalize_ophir_fpu(ophir_time, ophir_signal, caen_laser[0])
 plots.fiber_laser(fiber_num, caen_times, caen_laser, caen_signals)
 
 q_e = 1.6E-19
@@ -35,12 +43,8 @@ mV_2_V = 1E-3
 ns_2_s = 1E-9
 
 ev_ns = []
-
 A = q_e * M_gain * R_gain * G_magic * divider * gain_out
-
-fiber_num = 1
-#plot_fiber_laser(fiber_num)
-
+'''
 for shot in range(len(all_signals[fiber_num-1])):
     fiber = fiber_num - 1
 
@@ -54,4 +58,4 @@ for shot in range(len(all_signals[fiber_num-1])):
 
 n_phe = ev_ns
 n_phe[:] = [x * mV_2_V * ns_2_s / A for x in n_phe]
-
+'''

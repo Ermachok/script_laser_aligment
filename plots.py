@@ -22,10 +22,33 @@ def normalize_ophir_fpu(ophir_time, ophir_signal, caen_laser):
     plt.show()
 
 
+def ophir_fpu(ophir_signal, caen_laser):
+
+    fig, ax = plt.subplots(figsize=(9, 6))
+    caen_laser_max = []
+
+    for shot in caen_laser:
+        caen_laser_max.append(sum(shot) * 0.3125)
+
+    ax.plot(ophir_signal, caen_laser_max, '.', linewidth=0.9)
+
+    #for i in range(len(ophir_signal)):
+        #print(ophir_signal[i], caen_laser_max[i] )
+
+    plt.xlim(0, max(ophir_signal) + max(ophir_signal) * 0.05 )
+    plt.ylim(0, max(caen_laser_max) + max(caen_laser_max) * 0.05)
+
+    plt.xlabel('ophir')
+    plt.ylabel('mV * ns, fpu')
+
+    ax.grid()
+    plt.show()
+
+
 def fiber_laser(fiber_num, caen_times, caen_laser, caen_signals):
 
     fig, ax = plt.subplots(figsize=(9, 6))
-    for shot in range(len(caen_signals[fiber_num])):
+    for shot in range(len(caen_signals[fiber_num-1])):
     #for shot in range(1):
         # signal_data[shot][:] = [x * 3000/max(laser_data[shot]) for x in signal_data[shot]]
         ax.plot(caen_times[fiber_num - 1][shot], caen_signals[fiber_num - 1][shot], linewidth=0.9)
@@ -33,8 +56,11 @@ def fiber_laser(fiber_num, caen_times, caen_laser, caen_signals):
 
     plt.vlines(60, 0, 500)
     plt.vlines(20, 0, 500)
+    plt.xlabel('ns')
+    plt.ylabel('mV')
 
     #plt.xlim(0, 150)
-    fig.subplots_adjust(right=0.8)
     ax.grid()
     plt.show()
+
+

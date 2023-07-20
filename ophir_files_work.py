@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
 
 def ophir_data(file_name):
-    with open('C:\TS_data\\10.02.2023\\ophir_files\%s.txt' % file_name, 'r') as file:
-
+    #with open('C:\TS_data\\10.02.2023\\ophir_files\%s.txt' % file_name, 'r') as file:
+    #with open('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\\ophir_files\%s.txt' % file_name, 'r') as file:
+    with open('D:\Ioffe\TS\divertor_thomson\calibration\\16.06.2023\\ophir_files\%s.txt' % file_name, 'r') as file:
         ophir_time = []
         ophir_data = []
 
@@ -10,7 +11,7 @@ def ophir_data(file_name):
         for line in file:
             i += 1
             line = line.rstrip().lstrip()
-            if i > 36:
+            if i > 36: #c 36 строки начинаются данные
                 ophir_time.append(float(line.split()[0]))
                 ophir_data.append(float(line.split()[1]))
         file.close()
