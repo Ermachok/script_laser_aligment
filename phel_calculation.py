@@ -15,7 +15,7 @@ with path.open(mode='rb') as file:
 noise_len = 400  # counts
 
 caen_zero_lvl = []  #all caen channels zero lvl
-for caen_channel in range(10):
+for caen_channel in range(15):
     caen_ch_0lvl = []
     for laser_shot in range(len(data)):
         signal_lvl = sum(data[laser_shot]['ch'][caen_channel][:noise_len]) / noise_len
@@ -38,13 +38,17 @@ for laser_shot in range(len(caen_zero_lvl[0])):
 
 borders_parasite = [32, 51]
 borders_signal = []
-fig, ax = plt.subplots(figsize=(9, 6))
-for laser_shot in range(51):
-    ax.plot(times[laser_shot], caen_zero_lvl[2][laser_shot])
 
-plt.vlines(borders_parasite[0], 0, 100)
-plt.vlines(borders_parasite[1], 0, 100)
-plt.show()
+
+for caen_channel in range(1, 15):
+    fig, ax = plt.subplots(figsize=(9, 6))
+    for laser_shot in range(len(times)):
+        ax.plot(times[laser_shot], caen_zero_lvl[caen_channel][laser_shot])
+    plt.vlines(borders_parasite[0], 0, 100)
+    plt.vlines(borders_parasite[1], 0, 100)
+    plt.show()
+
+#plt.show()
 
 
 
