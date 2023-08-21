@@ -81,8 +81,8 @@ class InteractiveLegend(object):
         plt.show()
 
 
-caen_file_number = '00850'
-#caen_file_number = '43256'
+#caen_file_number = '00850'
+caen_file_number = '43256'
 msg_files_num = [4, 5, 6, 7]
 config_fiber_poly = {
     '1': '%d' % msg_files_num[0],
@@ -155,10 +155,10 @@ for iteration, (fib_num, msg_num) in enumerate(config_fiber_poly.items()):
         with open('D:\Ioffe\TS\divertor_thomson\calibration\\16.06.2023\caen_files\\%s\\%s_laser_msg_%s.csv'
                 % (caen_file_number, caen_file_number, msg_num), 'w') as file:
             for i in range(len(laser_data[ch_num])):
-                row = '%.4f, ' % x_ar[i]
+                raw = '%.4f, ' % x_ar[i]
                 for j in range(len(laser_data)):
-                    row = row + '%.3f, ' % (laser_data[j][i])
-                file.write(row + '\n')
+                    raw = raw + '%.3f, ' % (laser_data[j][i])
+                file.write(raw + '\n')
             file.close()
 
         laser_max = []

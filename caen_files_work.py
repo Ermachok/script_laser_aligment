@@ -18,8 +18,9 @@ def caen_data(caen_file_number, spectral_channel):
         '7': '%d' % msg_files_num_x10[1],
         '8': '%d' % msg_files_num_x10[2],
         '9': '%d' % msg_files_num_x10[2],
-
     }
+
+
     fibers_1_ch = [1, 6, 11, 1, 6, 6, 11, 1, 6]
     fibers_2_ch = [2, 7, 12, 2, 7, 7, 12, 2, 7]
     fibers_3_ch = [3, 8, 13, 3, 8, 8, 13, 3, 8]
@@ -86,6 +87,11 @@ def caen_data(caen_file_number, spectral_channel):
         all_signals.append(signal_data)
         all_times.append(times)
         all_laser.append(laser_data)
+
+        #del Pk_Pk_noise_data
+        #del signal_data
+        #del times
+        #del laser_data
 
         data.clear()
 
