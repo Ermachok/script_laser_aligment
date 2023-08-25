@@ -21,7 +21,6 @@ def normalize_ophir_fpu(ophir_time, ophir_signal, caen_laser):
     ax.grid()
     plt.show()
 
-
 def ophir_fpu(ophir_signal, caen_laser):
 
     fig, ax = plt.subplots(figsize=(9, 6))
@@ -43,7 +42,6 @@ def ophir_fpu(ophir_signal, caen_laser):
 
     ax.grid()
     plt.show()
-
 
 def fiber_laser(fiber_num, caen_times, caen_laser, caen_signals):
 
