@@ -23,7 +23,7 @@
           "poly_sp_ch": 1,
           "dtr_fiber": 1,
           "signal_left_border": 24,
-          "signal_right_border": 36,
+          "signal_right_border": 32,
           "parasite_left_border": 30,
           "parasite_right_border": 53
         },
@@ -92,7 +92,7 @@
           "poly" : 1,
           "poly_sp_ch": 3,
           "dtr_fiber": 2,
-          "signal_left_border": 27,
+          "signal_left_border": 29,
           "signal_right_border": 42,
           "parasite_left_border": 0,
           "parasite_right_border": 0
@@ -102,7 +102,7 @@
           "poly" : 1,
           "poly_sp_ch": 4,
           "dtr_fiber": 2,
-          "signal_left_border": 29,
+          "signal_left_border": 32,
           "signal_right_border": 44,
           "parasite_left_border": 0,
           "parasite_right_border": 0
@@ -112,7 +112,7 @@
           "poly" : 1,
           "poly_sp_ch": 5,
           "dtr_fiber": 2,
-          "signal_left_border": 31,
+          "signal_left_border": 34,
           "signal_right_border": 46,
           "parasite_left_border": 0,
           "parasite_right_border": 0
@@ -142,8 +142,8 @@
           "poly" : 2,
           "poly_sp_ch": 3,
           "dtr_fiber": 3,
-          "signal_left_border": 4,
-          "signal_right_border": 5,
+          "signal_left_border": 29,
+          "signal_right_border": 40,
           "parasite_left_border": 0,
           "parasite_right_border": 0
         },
@@ -152,8 +152,8 @@
           "poly" : 2,
           "poly_sp_ch": 4,
           "dtr_fiber": 3,
-          "signal_left_border": 4,
-          "signal_right_border": 5,
+          "signal_left_border": 32,
+          "signal_right_border": 42,
           "parasite_left_border": 0,
           "parasite_right_border": 0
         },
@@ -162,8 +162,8 @@
           "poly" : 2,
           "poly_sp_ch": 5,
           "dtr_fiber": 3,
-          "signal_left_border": 4,
-          "signal_right_border": 5,
+          "signal_left_border": 34,
+          "signal_right_border": 45,
           "parasite_left_border": 0,
           "parasite_right_border": 0
         }
