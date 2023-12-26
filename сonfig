@@ -22,8 +22,8 @@
           "poly" : 0,
           "poly_sp_ch": 1,
           "dtr_fiber": 1,
-          "signal_left_border": 24,
-          "signal_right_border": 32,
+          "signal_left_border": 22,
+          "signal_right_border": 30,
           "parasite_left_border": 30,
           "parasite_right_border": 53
         },

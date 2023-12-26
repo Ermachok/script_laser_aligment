@@ -68,8 +68,8 @@ def plot_signals(msg_num, caen_zero_lvl, times, shots_before_plasma, shots_in_pl
         #print(caen_ch, 'parasite')
         parasite_lines = []
         for laser_shot in range(shots_before_plasma):
-            parasite_indices = [bisect.bisect_right(times[laser_shot], parasite_lbord) - 1,
-                                bisect.bisect_right(times[laser_shot], parasite_rbord) - 1]
+            #parasite_indices = [bisect.bisect_right(times[laser_shot], parasite_lbord) - 1,
+                                #bisect.bisect_right(times[laser_shot], parasite_rbord) - 1]
 
             #parasite_integral = sum(caen_zero_lvl[1][laser_shot][parasite_indices[0]:parasite_indices[1]])
 
@@ -80,8 +80,8 @@ def plot_signals(msg_num, caen_zero_lvl, times, shots_before_plasma, shots_in_pl
         #print('signal')
         signal_lines = []
         for laser_shot in range(shots_before_plasma, shots_before_plasma + shots_in_plasma):
-            signal_indices = [bisect.bisect_right(times[laser_shot], signal_lbord) - 1,
-                              bisect.bisect_right(times[laser_shot], signal_rbord) - 1]
+            #signal_indices = [bisect.bisect_right(times[laser_shot], signal_lbord) - 1,
+                              #bisect.bisect_right(times[laser_shot], signal_rbord) - 1]
 
             #signal_integral = sum(caen_zero_lvl[caen_ch][laser_shot][signal_indices[0]:signal_indices[1]])
 
@@ -163,7 +163,7 @@ def approx_signal(msg_num, caen_ch, x_data, y_data):
         example_data[i] = float(example_data[i]) * signal_max_value
 
     noise_amplitude = noise_amplitude_subrout(y_data)
-    print(noise_amplitude)
+    print('Noise amplitude {} '.format(noise_amplitude))
 
     A = q_e * M_gain * R_gain * G_magic * divider * gain_out
 
@@ -176,7 +176,7 @@ def approx_signal(msg_num, caen_ch, x_data, y_data):
     #for i in range(1024):
         #print(y_data[i])
 
-    print(signal_Phe, noise_Phe)
+    print('signal {}, noise {} '.format(signal_Phe, noise_Phe))
 
     plt.subplots(figsize=(10, 5))
     plt.plot(x_data, y_data)
