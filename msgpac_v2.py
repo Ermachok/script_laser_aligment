@@ -33,7 +33,7 @@ caen_noise = caen_data[3]
 
 del caen_data
 
-#plots.fiber_laser(fiber_num, caen_times, caen_laser, caen_signals)
+plots.fiber_laser(fiber_num, caen_times, caen_laser, caen_signals)
 
 q_e = 1.6E-19
 M_gain = 1E2
@@ -47,10 +47,6 @@ ns_2_s = 1E-9
 ev_ns = []
 A = q_e * M_gain * R_gain * G_magic * divider * gain_out
 
-
-end = time.time() - start ## собственно время работы программы
-
-print(end)
 
 '''
 for shot in range(len(all_signals[fiber_num-1])):
