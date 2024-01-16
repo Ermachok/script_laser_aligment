@@ -52,11 +52,11 @@ def plot_signals(msg_num=None, caen_data=None, times=None,
     matplotlib.rcParams['figure.subplot.top'] = 0.96
 
     for caen_ch in range(1, number_of_caen_channels):
-        parasite_lbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['parasite_left_border']
-        parasite_rbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['parasite_right_border']
+        parasite_lbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['pest_LeftBord']
+        parasite_rbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['pest_RightBord']
 
-        signal_lbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['signal_left_border']
-        signal_rbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['signal_right_border']
+        signal_lbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['sig_LeftBord']
+        signal_rbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['sig_RightBord']
 
         fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(13, 8))
 
@@ -163,13 +163,13 @@ def approx_signal(msg_num, caen_ch, signal_time, signal_data, parasite_example, 
         example_data = signal_example_file.readlines()
         example_data = [float(example_data[i]) for i in range(len(example_data))]
 
-    signal_lbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['signal_left_border']
-    signal_rbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['signal_right_border']
+    signal_lbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['sig_LeftBord']
+    signal_rbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['sig_RightBord']
     signal_time_indices = [bisect.bisect_left(signal_time, signal_lbord),
                            bisect.bisect_right(signal_time, signal_rbord)]
 
-    parasite_lbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['parasite_left_border']
-    parasite_rbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['parasite_right_border']
+    parasite_lbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['pest_LeftBord']
+    parasite_rbord = config_data['equator_caens'][msg_num]['channels'][caen_ch]['pest_RightBord']
     parasite_time_indices = [bisect.bisect_left(signal_time, parasite_lbord),
                              bisect.bisect_right(signal_time, parasite_rbord)]
 
@@ -249,7 +249,8 @@ caen_file_number = '00825'
 all_caens = []
 
 for msg_num in msg_files_num_x10:
-    path = Path('C:\TS_data\\DTS_summer_2023\%s\%s.msgpk' % (discharge_num, msg_num))
+    #path = Path('C:\TS_data\\DTS_summer_2023\%s\%s.msgpk' % (discharge_num, msg_num))
+    path = Path('D:\Ioffe\TS\divertor_thomson\measurements\\%s\\%s.msgpk' % (discharge_num, msg_num))
     times, caen_data = caen_msg_handler(path)
     all_caens.append({'caen_num': msg_num,
                       'shots_time': times,

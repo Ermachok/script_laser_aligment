@@ -26,7 +26,7 @@
           "sig_RightBord": 51,
           "pest_LeftBord": 31,
           "pest_RightBord": 55,
-          "pest_MaxBord": [39, 45]
+          "sig_MaxBord": [39, 45]
         },
         {
           "caen_ch" :2,
@@ -37,7 +37,7 @@
           "sig_RightBord": 39,
           "pest_LeftBord": 0,
           "pest_RightBord": 0,
-          "pest_MaxBord": [39, 42]
+          "sig_MaxBord": [39, 42]
         },
         {
           "caen_ch" :3,
@@ -48,7 +48,7 @@
           "sig_RightBord": 50,
           "pest_LeftBord": 0,
           "pest_RightBord": 0,
-          "pest_MaxBord": [39, 42]
+          "sig_MaxBord": [39, 42]
         },
         {
           "caen_ch" :4,
@@ -59,7 +59,7 @@
           "sig_RightBord": 56,
           "pest_LeftBord": 42,
           "pest_RightBord": 56,
-          "pest_MaxBord": [39, 42]
+          "sig_MaxBord": [39, 42]
         },
         {
           "caen_ch" :5,
@@ -70,7 +70,7 @@
           "sig_RightBord": 47,
           "pest_LeftBord": 0,
           "pest_RightBord": 0,
-          "pest_MaxBord": [39, 42]
+          "sig_MaxBord": [39, 42]
         },
         {
           "caen_ch" :6,
@@ -79,29 +79,31 @@
           "dtr_fiber": 2,
           "sig_LeftBord": 23,
           "sig_RightBord": 38,
-          "pest_LeftBord": 36,
+          "pest_LeftBord": 35,
           "pest_RightBord": 53,
-          "pest_MaxBord": [41, 45]
+          "sig_MaxBord": [28, 38]
         },
         {
           "caen_ch" :7,
           "poly" : 1,
           "poly_sp_ch": 2,
           "dtr_fiber": 2,
-          "sig_LeftBord": 27,
-          "sig_RightBord": 40,
+          "sig_LeftBord": 26,
+          "sig_RightBord": 42,
           "pest_LeftBord": 0,
-          "pest_RightBord": 0
+          "pest_RightBord": 0,
+          "sig_MaxBord": [41, 45]
         },
         {
           "caen_ch" :8,
           "poly" : 1,
           "poly_sp_ch": 3,
           "dtr_fiber": 2,
-          "sig_LeftBord": 29,
+          "sig_LeftBord": 26,
           "sig_RightBord": 42,
           "pest_LeftBord": 0,
-          "pest_RightBord": 0
+          "pest_RightBord": 0,
+          "sig_MaxBord": [41, 45]
         },
         {
           "caen_ch" :9,
@@ -111,7 +113,8 @@
           "sig_LeftBord": 32,
           "sig_RightBord": 44,
           "pest_LeftBord": 0,
-          "pest_RightBord": 0
+          "pest_RightBord": 0,
+          "sig_MaxBord": [41, 45]
         },
         {
           "caen_ch" :10,
@@ -121,7 +124,8 @@
           "sig_LeftBord": 34,
           "sig_RightBord": 46,
           "pest_LeftBord": 0,
-          "pest_RightBord": 0
+          "pest_RightBord": 0,
+          "sig_MaxBord": [41, 45]
         },
         {
           "caen_ch" :11,
@@ -131,7 +135,8 @@
           "sig_LeftBord": 23,
           "sig_RightBord": 36,
           "pest_LeftBord": 37,
-          "pest_RightBord": 45
+          "pest_RightBord": 45,
+          "sig_MaxBord": [41, 45]
         },
         {
           "caen_ch" :12,
@@ -141,7 +146,8 @@
           "sig_LeftBord": 26,
           "sig_RightBord": 39,
           "pest_LeftBord": 0,
-          "pest_RightBord": 0
+          "pest_RightBord": 0,
+          "sig_MaxBord": [41, 45]
         },
         {
           "caen_ch" :13,
@@ -151,7 +157,8 @@
           "sig_LeftBord": 29,
           "sig_RightBord": 40,
           "pest_LeftBord": 0,
-          "pest_RightBord": 0
+          "pest_RightBord": 0,
+          "sig_MaxBord": [41, 45]
         },
         {
           "caen_ch" :14,
@@ -161,7 +168,8 @@
           "sig_LeftBord": 32,
           "sig_RightBord": 42,
           "pest_LeftBord": 0,
-          "pest_RightBord": 0
+          "pest_RightBord": 0,
+          "sig_MaxBord": [41, 45]
         },
         {
           "caen_ch" : 15,
@@ -171,7 +179,8 @@
           "sig_LeftBord": 34,
           "sig_RightBord": 45,
           "pest_LeftBord": 0,
-          "pest_RightBord": 0
+          "pest_RightBord": 0,
+          "sig_MaxBord": [41, 45]
         }
       ]
     },
