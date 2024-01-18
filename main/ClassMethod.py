@@ -92,8 +92,9 @@ class Polychromator:
                 #     signal_integral = sum(self.__signals[poly_ch][shot][signal_indices[0]:signal_indices[1]]) * t_step
                 pass
 
+        print('\nIntegrals mV * ns')
         for shot in range(shots_before_plasma + shots_after):
-            print(shot, end=' ')
+            print(shot+1, end=' ')
             for poly_ch in range(number_of_ch):
                 signal_indices = [bisect.bisect_left(self.__signals_time[shot], self.__config[poly_ch]['sig_LeftBord']),
                                   bisect.bisect_right(self.__signals_time[shot], self.__config[poly_ch]['sig_RightBord'])]
@@ -195,11 +196,11 @@ poly_9 = Polychromator(poly_number=9, fiber_number=9,
 poly_2.signal_integrals()
 
 # #
-# fig, ax = plt.subplots(nrows=5, ncols=1, figsize=(13, 8))
-# for ch in range(5):
-#     for shot in range(9, 19):
-#         time, signal = poly_2.get_data(shot_num=shot, ch_num=ch)
-#         ax[ch].plot(time, signal, label='shot %d' %shot)
-#
-# plt.tight_layout()
-# plt.show()
+fig, ax = plt.subplots(nrows=5, ncols=1, figsize=(13, 8))
+for ch in range(5):
+    for shot in range(10,19):
+        time, signal = poly_2.get_data(shot_num=shot, ch_num=ch)
+        ax[ch].plot(time, signal, label='shot %d' %shot)
+
+plt.tight_layout()
+plt.show()

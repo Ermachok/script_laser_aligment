@@ -1,7 +1,5 @@
-import matplotlib.pyplot as plt
 import ophir_files_work
-import caen_files_work
-import plots
+from main import caen_files_work, plots
 import time
 start = time.time()
 caen_file_number = '43256'

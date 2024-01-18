@@ -1,4 +1,4 @@
-import caen_files_work
+from main import caen_files_work
 import ophir_files_work
 
 dict = {
