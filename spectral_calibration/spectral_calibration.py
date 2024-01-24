@@ -1,5 +1,7 @@
+import datetime
 import json
 import bisect
+from datetime import date
 
 avalanche_Path = 'aw.csv'
 calibration_Path = '2023.01.12.json'
@@ -149,31 +151,31 @@ def linear_interpolation(x_point: float, Xdata: list, Ydata: list) -> float:
 
 def calculate_Ki(calibration_path: str, filterIntegrals: list,
                  poly_number: int = 10, polyCh_num: int = 5, gains: list = None) -> list:
-
     if gains is None:
         gains = [8, 4, 2, 1, 1]
-        print('\nUsed default gains')
+        print('\nUsed default gains: ', gains)
 
     with open(calibration_path) as calib_file:
         calib_data = json.load(calib_file)
 
-    for poly in range(1, poly_number+1):
-        print('\n\nPoly ind {}, kappa normalized '.format(calib_data['poly'][poly]['ind']))
-        for poly_ch in range(polyCh_num):
-            kappa_i = calib_data['poly'][poly]['amp'][poly_ch] / (filterIntegrals[poly_ch] * gains[poly_ch])
-            if poly_ch == 0:
-                kappa_1ch = kappa_i
-
-            print('{},'.format(kappa_i/kappa_1ch), end=' ')
-
-
+    with open('EN_spectral_config_%s.json' % date.today(), 'w') as spec_conf_file:
+        spectral_kappa = {}
+        for poly in range(1, poly_number + 1):
+            poly_kappa = []
+            # print('\n\nPoly ind {}, kappa normalized '.format(calib_data['poly'][poly]['ind']))
+            for poly_ch in range(polyCh_num):
+                kappa_i = calib_data['poly'][poly]['amp'][poly_ch] / (filterIntegrals[poly_ch] * gains[poly_ch])
+                if poly_ch == 0:
+                    kappa_1ch = kappa_i
+                poly_kappa.append(kappa_i / kappa_1ch)
+                # print('{},'.format(kappa_i/kappa_1ch), end=' ')
+            spectral_kappa['poly_ind_{}'.format(calib_data['poly'][poly]['ind'])] = poly_kappa
+        json.dump(spectral_kappa, spec_conf_file, indent='\t')
 
 
 avalanche_wl, avalanche_phe = get_avalanche_data(avalanche_Path)
 lamp_wl, lamp_intensity = get_lamp_data(lamp_Path)
 filters_wl, filter_transm = get_filters_data(filter_Path)
-
-
 
 multiplyResult = multiplyLampFiltersAvalanche(avalanche_wl=avalanche_wl, avalanche_phe=avalanche_phe,
                                               lamp_wl=lamp_wl, lamp_intensity=lamp_intensity,
@@ -182,3 +184,5 @@ multiplyResult = multiplyLampFiltersAvalanche(avalanche_wl=avalanche_wl, avalanc
 integrals = get_integrals(multiplyResult, filters_wl[1] - filters_wl[0])
 
 calculate_Ki(calibration_path=calibration_Path, filterIntegrals=integrals)
+
+
