@@ -3,22 +3,19 @@ import json
 import bisect
 from datetime import date
 
-avalanche_Path = 'aw.csv'
-calibration_Path = '2023.01.12.json'
-lamp_Path = 'Lab_spectrum.txt'
-filter_Path = 'filters_equator.csv'
 
 
 def get_avalanche_data(avalanche_path: str):
     """
     :param avalanche_path:
-    :return: 2 списка: длину волны в нм и квантовый выход phe/photon
+    :return: 2 списка: длину волны в нм и квантовый выход phe/photon без усиления!
     """
     h_plank = 6.63E-34
     c = 3E8
     e_charge = 1.602E-19
+    M_gain = 100
 
-    full_coef = h_plank * c * 1E9 / e_charge  # 10E9 переход к метрам
+    full_coef = h_plank * c * 1E9 / (e_charge * M_gain) # 10E9 переход к метрам
 
     with open(avalanche_path) as avalanche_data:
         aval_wl = []
@@ -54,7 +51,7 @@ def get_lamp_data(lamp_path: str):
         return lamp_wl, lamp_intensity
 
 
-def get_filters_data(filter_path: str):
+def get_filters_data(filter_path: str, filters_tansposed=False):
     with open(filter_path) as filters_data:
         filters_wl = []
         filters_transmission = []
@@ -65,8 +62,17 @@ def get_filters_data(filter_path: str):
                 wl, *intensity = line.split(',')
                 filters_wl.append(float(wl))
                 filters_transmission.append(list(float(x) for x in intensity))
-        return filters_wl, filters_transmission
 
+        if not filters_tansposed:
+            return filters_wl, filters_transmission
+        else:
+            filters_transposed = []
+            for filter_num in range(len(filters_transmission[0])):
+                filter_trans = []
+                for wl in range(len(filters_transmission)):
+                    filter_trans.append(filters_transmission[wl][filter_num])
+                filters_transposed.append(filter_trans)
+            return filters_wl, filters_transposed
 
 def multiplyLampFiltersAvalanche(lamp_wl: list = None, lamp_intensity: list = None,
                                  avalanche_wl: list = None, avalanche_phe: list = None,
@@ -173,16 +179,23 @@ def calculate_Ki(calibration_path: str, filterIntegrals: list,
         json.dump(spectral_kappa, spec_conf_file, indent='\t')
 
 
-avalanche_wl, avalanche_phe = get_avalanche_data(avalanche_Path)
-lamp_wl, lamp_intensity = get_lamp_data(lamp_Path)
-filters_wl, filter_transm = get_filters_data(filter_Path)
+if __name__ == '__main__':
 
-multiplyResult = multiplyLampFiltersAvalanche(avalanche_wl=avalanche_wl, avalanche_phe=avalanche_phe,
-                                              lamp_wl=lamp_wl, lamp_intensity=lamp_intensity,
-                                              filters_wl=filters_wl, filter_transm=filter_transm)
+    avalanche_Path = 'aw.csv'
+    calibration_Path = '2023.01.12.json'
+    lamp_Path = 'Lab_spectrum.txt'
+    filter_Path = 'filters_equator.csv'
 
-integrals = get_integrals(multiplyResult, filters_wl[1] - filters_wl[0])
+    avalanche_wl, avalanche_phe = get_avalanche_data(avalanche_Path)
+    lamp_wl, lamp_intensity = get_lamp_data(lamp_Path)
+    filters_wl, filter_transm = get_filters_data(filter_Path)
 
-calculate_Ki(calibration_path=calibration_Path, filterIntegrals=integrals)
+    multiplyResult = multiplyLampFiltersAvalanche(avalanche_wl=avalanche_wl, avalanche_phe=avalanche_phe,
+                                                  lamp_wl=lamp_wl, lamp_intensity=lamp_intensity,
+                                                  filters_wl=filters_wl, filter_transm=filter_transm)
+
+    integrals = get_integrals(multiplyResult, filters_wl[1] - filters_wl[0])
+
+    calculate_Ki(calibration_path=calibration_Path, filterIntegrals=integrals)
 
 

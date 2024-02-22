@@ -102,6 +102,7 @@ class Polychromator:
                 print(signal_integral, end=' ')
             print()
 
+
     @staticmethod
     def rude_pestCheck(signals_before_plasma, start_ind: int = 500, end_ind: int = 700, t_step: float = 0.325):
         """
