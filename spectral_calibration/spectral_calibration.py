@@ -51,7 +51,7 @@ def get_lamp_data(lamp_path: str):
         return lamp_wl, lamp_intensity
 
 
-def get_filters_data(filter_path: str, filters_tansposed=False):
+def get_filters_data(filter_path: str, filters_transposed=False):
     with open(filter_path) as filters_data:
         filters_wl = []
         filters_transmission = []
@@ -63,7 +63,7 @@ def get_filters_data(filter_path: str, filters_tansposed=False):
                 filters_wl.append(float(wl))
                 filters_transmission.append(list(float(x) for x in intensity))
 
-        if not filters_tansposed:
+        if not filters_transposed:
             return filters_wl, filters_transmission
         else:
             filters_transposed = []
