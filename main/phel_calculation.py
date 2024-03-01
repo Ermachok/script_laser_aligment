@@ -45,7 +45,6 @@ def caen_msg_handler(path, t_step=0.325, time_shift=100, noise_len=400, processe
 
 def plot_signals(msg_num=None, caen_data=None, times=None,
                  config_data=None, shots_before_plasma=10, shots_in_plasma=15, plot_limits=True):
-
     matplotlib.rcParams['figure.subplot.left'] = 0.05
     matplotlib.rcParams['figure.subplot.bottom'] = 0.06
     matplotlib.rcParams['figure.subplot.right'] = 0.98
@@ -101,7 +100,6 @@ def plot_signals(msg_num=None, caen_data=None, times=None,
             signal_lines.append(signal_line)
             # print(signal_integral)
 
-
         ax[1].vlines(parasite_lbord, 0, 100, 'r', '--')
         ax[1].vlines(parasite_rbord, 0, 100, 'r', '--')
 
@@ -148,7 +146,6 @@ def plot_signals(msg_num=None, caen_data=None, times=None,
 
 
 def approx_signal(msg_num, caen_ch, signal_time, signal_data, parasite_example, t_step=0.325):
-
     q_e = 1.6E-19
     M_gain = 1E2
     R_gain = 1E4
@@ -188,7 +185,7 @@ def approx_signal(msg_num, caen_ch, signal_time, signal_data, parasite_example, 
     example_for_signal_time = [t_start_signal + i * t_step for i in range(1024)]
 
     difference_in_time = round((example_for_parasite_time[0] - example_for_signal_time[0]) / t_step)
-    #difference_in_time = 0
+    # difference_in_time = 0
 
     signal_example_data = []
     parasite_example_data = []
@@ -213,7 +210,7 @@ def approx_signal(msg_num, caen_ch, signal_time, signal_data, parasite_example, 
     signal_Phe = sum(
         example_data[integral_borders_indices[0]: integral_borders_indices[1]]) * t_step * mV_2_V * ns_2_s / A
 
-    #print('signal {} eV, noise {} eV '.format(signal_Phe, noise_Phe))
+    # print('signal {} eV, noise {} eV '.format(signal_Phe, noise_Phe))
 
     plt.subplots(figsize=(10, 5))
     plt.plot(signal_time, signal_data)
@@ -249,7 +246,7 @@ caen_file_number = '00825'
 all_caens = []
 
 for msg_num in msg_files_num_x10:
-    #path = Path('C:\TS_data\\DTS_summer_2023\%s\%s.msgpk' % (discharge_num, msg_num))
+    # path = Path('C:\TS_data\\DTS_summer_2023\%s\%s.msgpk' % (discharge_num, msg_num))
     path = Path('D:\Ioffe\TS\divertor_thomson\measurements\\%s\\%s.msgpk' % (discharge_num, msg_num))
     times, caen_data = caen_msg_handler(path)
     all_caens.append({'caen_num': msg_num,
@@ -265,9 +262,7 @@ for msg_num in msg_files_num_x10:
 # ax.plot(all_caens[0]['shots_time'][11], all_caens[0]['caen_channels'][1][11])
 # plt.show()
 for msg_num in msg_files_num_x10:
-    plot_signals(msg_num=msg_num, caen_data=all_caens[msg_num-4]['caen_channels'],
-                 times=all_caens[msg_num-4]['shots_time'], config_data=config_data)
-
-
+    plot_signals(msg_num=msg_num, caen_data=all_caens[msg_num - 4]['caen_channels'],
+                 times=all_caens[msg_num - 4]['shots_time'], config_data=config_data)
 
 print('code ok')

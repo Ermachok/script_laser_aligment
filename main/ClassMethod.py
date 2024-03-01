@@ -78,35 +78,35 @@ class Polychromator:
         A = q_e * M_gain * R_gain * G_magic * divider * gain_out
         all_const = mV_2_V * ns_2_s / A
 
-        for poly_ch in range(number_of_ch):
-            print('\nFiber number {fiber}\nChannel number {channel}'.format(fiber=self.fiber_number,
-                                                                            channel=poly_ch + 1))
-            pestCheck = self.rude_pestCheck(self.__signals[poly_ch][1:shots_before_plasma])
+        # for poly_ch in range(number_of_ch):
+        # print('\nFiber number {fiber}\nChannel number {channel}'.format(fiber=self.fiber_number,
+        #                                                                 channel=poly_ch + 1))
+        # pestCheck = self.rude_pestCheck(self.__signals[poly_ch][1:shots_before_plasma])
 
-            if pestCheck:
-                average_parasite = 0
-                for shot in range(1, shots_before_plasma):
-                    parasite_indices = [
-                        bisect.bisect_left(self.__signals_time[shot], self.__config[poly_ch]['pest_LeftBord']),
-                        bisect.bisect_right(self.__signals_time[shot], self.__config[poly_ch]['pest_RightBord'])]
-
-                    average_parasite += sum(
-                        self.__signals[poly_ch][shot][parasite_indices[0]:parasite_indices[1]]) * t_step
-
-                average_parasite = average_parasite / (shots_before_plasma - 1)
-                print('Average integral parasite(before plasma) {} mV*ns'.format(average_parasite))
-                # for shot in range(shots_before_plasma, shots_before_plasma + shots_after):
-                #     signal_indices = [bisect.bisect_left(self.__signals_time[shot], self.__config[poly_ch]['sig_LeftBord']),
-                #                        bisect.bisect_right(self.__signals_time[shot], self.__config[poly_ch]['sig_RightBord'])]
-                #     signal_integral = sum(self.__signals[poly_ch][shot][signal_indices[0]:signal_indices[1]]) * t_step
-                pass
+        # if pestCheck:
+        #     average_parasite = 0
+        #     for shot in range(1, shots_before_plasma):
+        #         parasite_indices = [
+        #             bisect.bisect_left(self.__signals_time[shot], self.__config[poly_ch]['pest_LeftBord']),
+        #             bisect.bisect_right(self.__signals_time[shot], self.__config[poly_ch]['pest_RightBord'])]
+        #
+        #         average_parasite += sum(
+        #             self.__signals[poly_ch][shot][parasite_indices[0]:parasite_indices[1]]) * t_step
+        #
+        #     average_parasite = average_parasite / (shots_before_plasma - 1)
+        # print('Average integral parasite(before plasma) {} mV*ns'.format(average_parasite))
+        # for shot in range(shots_before_plasma, shots_before_plasma + shots_after):
+        #     signal_indices = [bisect.bisect_left(self.__signals_time[shot], self.__config[poly_ch]['sig_LeftBord']),
+        #                        bisect.bisect_right(self.__signals_time[shot], self.__config[poly_ch]['sig_RightBord'])]
+        #     signal_integral = sum(self.__signals[poly_ch][shot][signal_indices[0]:signal_indices[1]]) * t_step
+        # pass
 
         # print('\nIntegrals mV * ns')
-        print('\nIntegrals phe')
+        # print('\nIntegrals phe')
         all_shots_signal = []
         all_shots_noise = []
         for shot in range(1, shots_before_plasma + shots_after):
-            print(shot, end=' ')
+            # print(shot, end=' ')
             all_ch_signal = []
             all_ch_noise = []
             for poly_ch in range(number_of_ch):
@@ -117,15 +117,16 @@ class Polychromator:
                 signal_integral = sum(self.__signals[poly_ch][shot][signal_indices[0]:signal_indices[1]]) * t_step
                 all_ch_signal.append(signal_integral * all_const)
                 all_ch_noise.append(statistics.stdev(self.__signals[poly_ch][shot][:200]) * t_step * all_const * (
-                            signal_indices[1] - signal_indices[0]))
+                        signal_indices[1] - signal_indices[0]))
 
-                print('signal', round(signal_integral * all_const, 2),
-                      'noise', round(statistics.stdev(self.__signals[poly_ch][shot][:200]) * t_step * all_const *
-                                     (signal_indices[1] - signal_indices[0]), 2), end='; ')
+                # print('signal', round(signal_integral * all_const, 2),
+                #       'noise', round(statistics.stdev(self.__signals[poly_ch][shot][:200]) * t_step * all_const *
+                #                      (signal_indices[1] - signal_indices[0]), 2), end='; ')
 
             all_shots_signal.append(all_ch_signal)
             all_shots_noise.append(all_ch_noise)
-            print()
+
+            # print()
 
         return all_shots_signal, all_shots_noise
 
@@ -178,76 +179,84 @@ for msg_num in msg_files_num_x10:
 with open('сonfig') as file:
     config_data = json.load(file)
 
-poly_1 = Polychromator(poly_number=1, fiber_number=1,
+poly_0 = Polychromator(poly_number=0, fiber_number=1,
                        config=config_data['equator_caens'][4]['channels'][1:6], absolut_calib=None,
                        caen_time=all_caens[0]['shots_time'], caen_data=all_caens[0]['caen_channels'][1:6])
 
-poly_2 = Polychromator(poly_number=2, fiber_number=2,
+poly_1 = Polychromator(poly_number=1, fiber_number=2,
                        config=config_data['equator_caens'][4]['channels'][6:11], absolut_calib=None,
                        caen_time=all_caens[0]['shots_time'], caen_data=all_caens[0]['caen_channels'][6:11])
 
-poly_3 = Polychromator(poly_number=3, fiber_number=3,
+poly_2 = Polychromator(poly_number=2, fiber_number=3,
                        config=config_data['equator_caens'][4]['channels'][11:16], absolut_calib=None,
                        caen_time=all_caens[0]['shots_time'], caen_data=all_caens[0]['caen_channels'][11:16])
 
-poly_4 = Polychromator(poly_number=4, fiber_number=4,
+poly_3 = Polychromator(poly_number=3, fiber_number=4,
                        config=config_data['equator_caens'][5]['channels'][1:6], absolut_calib=None,
                        caen_time=all_caens[1]['shots_time'], caen_data=all_caens[1]['caen_channels'][1:6])
 
-poly_5 = Polychromator(poly_number=5, fiber_number=5,
+poly_4 = Polychromator(poly_number=4, fiber_number=5,
                        config=config_data['equator_caens'][5]['channels'][6:11], absolut_calib=None,
                        caen_time=all_caens[1]['shots_time'], caen_data=all_caens[1]['caen_channels'][6:11])
 
-poly_6 = Polychromator(poly_number=6, fiber_number=6,
+poly_5 = Polychromator(poly_number=5, fiber_number=7,
                        config=config_data['equator_caens'][7]['channels'][6:11], absolut_calib=None,
                        caen_time=all_caens[3]['shots_time'], caen_data=all_caens[3]['caen_channels'][6:11])
 
-poly_7 = Polychromator(poly_number=7, fiber_number=7,
+poly_6 = Polychromator(poly_number=6, fiber_number=8,
                        config=config_data['equator_caens'][5]['channels'][11:16], absolut_calib=None,
                        caen_time=all_caens[1]['shots_time'], caen_data=all_caens[1]['caen_channels'][11:16])
 
-poly_8 = Polychromator(poly_number=8, fiber_number=8,
+poly_7 = Polychromator(poly_number=7, fiber_number=9,
                        config=config_data['equator_caens'][6]['channels'][1:6], absolut_calib=None,
                        caen_time=all_caens[2]['shots_time'], caen_data=all_caens[2]['caen_channels'][1:6])
 
-poly_9 = Polychromator(poly_number=9, fiber_number=9,
-                       config=config_data['equator_caens'][6]['channels'][6:11], absolut_calib=None,
-                       caen_time=all_caens[2]['shots_time'], caen_data=all_caens[2]['caen_channels'][6:11])
+poly_10 = Polychromator(poly_number=10, fiber_number=6,
+                        config=config_data['equator_caens'][6]['channels'][6:11], absolut_calib=None,
+                        caen_time=all_caens[2]['shots_time'], caen_data=all_caens[2]['caen_channels'][6:11])
 
-#fig, ax = plt.subplots(nrows=5, ncols=1, figsize=(13, 8))
-# plt.xlim([0, 100])
-# for ch in range(5):
-#     for shot in range(1, 10):
-#         time, signal = poly_2.get_row_data(shot_num=shot, ch_num=ch)
-#         ax[ch].plot(time, signal, label='shot %d' % shot)
-#         ax[ch].set_xlim([0, 80])
-# plt.show()
+fig, ax = plt.subplots(nrows=5, ncols=1, figsize=(13, 8))
+plt.xlim([0, 100])
+for ch in range(5):
+    for shot in range(20, 25):
+        time, signal = poly_4.get_row_data(shot_num=shot, ch_num=ch)
+        ax[ch].plot(time, signal, label='shot %d' % shot)
+        ax[ch].set_xlim([0, 80])
+    ax[ch].legend()
 
-signals, noises = poly_6.signal_integrals()
+plt.show()
 
-
+all_polys = [poly_0, poly_1, poly_2, poly_3, poly_4, poly_10, poly_5, poly_6, poly_7]
 with open('../temperature_estimation/f_e.json', 'r') as f_file:
     fe_data = json.load(f_file)
 
-for shot, noise in zip(signals, noises):
-    ans = []
-    for index, (T_e, f_e) in enumerate(fe_data.items()):
-        khi = 0
-        if index >= 2:
+for poly in all_polys[1:]:
+    signals, noises = poly.signal_integrals()
 
-            sum_1 = 0
-            for ch in range(3):
-                sum_1 += shot[ch] * f_e[ch] / noise[ch]**2
+    results = []
+    for shot, noise in zip(signals, noises):
+        ans = []
+        for index, (T_e, f_e) in enumerate(fe_data.items()):
+            khi = 0
+            if index >= 2:
 
-            sum_2 = 0
-            for ch in range(3):
-                sum_2 += f_e[ch]**2 / noise[ch] ** 2
+                sum_1 = 0
+                for ch in range(3):
+                    sum_1 += shot[ch] * f_e[ch] / noise[ch] ** 2
 
+                sum_2 = 0
+                for ch in range(3):
+                    sum_2 += f_e[ch] ** 2 / noise[ch] ** 2
 
-            for ch in range(3):
-                khi += (shot[ch] - sum_1 * f_e[ch] / sum_2)**2 / noise[ch]**2
-            ans.append({T_e: khi})
+                for ch in range(3):
+                    khi += (shot[ch] - sum_1 * f_e[ch] / sum_2) ** 2 / noise[ch] ** 2
+                ans.append({T_e: khi})
 
+        results.append(ans)
 
+    for shot in results:
+        sort = sorted(shot, key=lambda x: list(x.values())[0])
+        for T in sort[0].keys():
+            print(T, end=' ')
 
-
+    print()

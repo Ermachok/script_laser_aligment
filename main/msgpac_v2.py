@@ -1,6 +1,7 @@
 import ophir_files_work
 from main import caen_files_work, plots
 import time
+
 start = time.time()
 caen_file_number = '43256'
 ophir_file_name = '534475_68'
@@ -11,7 +12,7 @@ def ophir(ophir_fname):
     ophir_time = ophir_data[0]
     ophir_signal = ophir_data[1]
 
-    del ophir_data  
+    del ophir_data
     for i in range(len(ophir_signal)):
         print(ophir_signal[i])
 
@@ -20,7 +21,6 @@ def ophir(ophir_fname):
 
 fiber_num = 1
 spectral_channel = 1
-
 
 caen_data = caen_files_work.caen_data(caen_file_number, spectral_channel)
 
@@ -44,7 +44,6 @@ ns_2_s = 1E-9
 
 ev_ns = []
 A = q_e * M_gain * R_gain * G_magic * divider * gain_out
-
 
 '''
 for shot in range(len(all_signals[fiber_num-1])):

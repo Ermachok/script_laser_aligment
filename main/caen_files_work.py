@@ -3,7 +3,6 @@ from pathlib import Path
 
 
 def caen_data(caen_file_number, spectral_channel):
-
     msg_files_num_x10 = [4, 5, 6, 7]
     msg_files_num_x2 = [0, 1, 2, 3]
 
@@ -34,20 +33,20 @@ def caen_data(caen_file_number, spectral_channel):
     all_laser = []
 
     for iteration, (fib_num, msg_num) in enumerate(config_fiber_poly.items()):
-        #print('iteration %d, ' % iteration, 'fiber number %s, ' % fib_num, 'caen num %s, ' % msg_num,
-              #'fiber ch in caen %s' % fibers_1_ch[iteration])
+        # print('iteration %d, ' % iteration, 'fiber number %s, ' % fib_num, 'caen num %s, ' % msg_num,
+        # 'fiber ch in caen %s' % fibers_1_ch[iteration])
 
         path = Path('C:\TS_data\\10.02.2023\caen_files\%s\%s.msgpk' % (caen_file_number, msg_num))
-        #path = Path('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\caen_files\\%s\\%s.msgpk'
-                    #% (caen_file_number, msg_num))
-        #path = Path('D:\Ioffe\TS\divertor_thomson\calibration\\16.06.2023\caen_files\\%s\\%s.msgpk' % (
+        # path = Path('D:\Ioffe\TS\divertor_thomson\laser(100Hz)\\alignment\\10.02.2023\caen_files\\%s\\%s.msgpk'
+        # % (caen_file_number, msg_num))
+        # path = Path('D:\Ioffe\TS\divertor_thomson\calibration\\16.06.2023\caen_files\\%s\\%s.msgpk' % (
 
-        #path = Path('D:\Ioffe\TS\divertor_thomson\measurements\\%s\\%s.msgpk' % (caen_file_number, msg_num))
+        # path = Path('D:\Ioffe\TS\divertor_thomson\measurements\\%s\\%s.msgpk' % (caen_file_number, msg_num))
         with path.open(mode='rb') as file:
             data = msgpack.unpackb(file.read())
             file.close()
 
-        caen_ch_num = fiber_channels[spectral_channel-1][iteration]
+        caen_ch_num = fiber_channels[spectral_channel - 1][iteration]
 
         signal_data = []
         Pk_Pk_noise_data = []
@@ -89,4 +88,3 @@ def caen_data(caen_file_number, spectral_channel):
         data.clear()
 
     return all_times, all_laser, all_signals, all_noise
-
