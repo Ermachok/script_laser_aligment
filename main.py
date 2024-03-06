@@ -1,4 +1,4 @@
-from main import caen_files_work
+from T_e_calculation import caen_files_work
 import ophir_files_work
 
 dict = {

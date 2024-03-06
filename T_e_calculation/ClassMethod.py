@@ -1,52 +1,17 @@
-import msgpack
 from pathlib import Path
 import json
 import matplotlib.pyplot as plt
 import bisect
 import statistics
-
-
-def caen_msg_handler(path, t_step=0.325, time_shift=100, noise_len=400, processed_shots=35):
-    """
-    :param time_shift: сдвиг для построения в одной системе координат
-    :param path:путь до файла
-    :param t_step: шаг оцифровщика
-    :param noise_len: длина для вычисления уровня над нулем и уровня шума
-    :param processed_shots: количество обработанных выстрелов
-    :return:
-    """
-
-    times = []
-    caen_zero_lvl = []
-    caen_channels_number = 16
-    with path.open(mode='rb') as file:
-        data = msgpack.unpackb(file.read())
-        file.close()
-
-    for caen_channel in range(caen_channels_number):
-        caen_ch_0lvl = []
-        for laser_shot in range(processed_shots):
-            median = statistics.median(data[laser_shot]['ch'][caen_channel][:noise_len])
-            signal_zero_lvl = [round(float(x) - median, 5) for x in data[laser_shot]['ch'][caen_channel]]
-            caen_ch_0lvl.append(signal_zero_lvl)
-
-            # fig, ax = plt.subplots(figsize=(9, 6))
-            # ax.plot(time, signal_zero_lvl)
-            # plt.show()
-        caen_zero_lvl.append(caen_ch_0lvl)
-
-    for laser_shot in range(processed_shots):
-        time = [round(time_shift - caen_zero_lvl[0][laser_shot].index(max(caen_zero_lvl[0][laser_shot])) * t_step +
-                      t_step * t, 5) for t in range(1024)]
-        times.append(time)
-
-    return times, caen_zero_lvl
+from T_e_calculation.utilities.masg_handler import handle_all_caens
+import time
 
 
 class Polychromator:
 
     def __init__(self, poly_number: int, fiber_number: int, caen_time: list, caen_data: list,
-                 config=None, absolut_calib: Path = None, spectral_calib: Path = None):
+                 config=None, absolut_calib: Path = '../absolut_calibration/fibers_A_26_02_2024.json',
+                 spectral_calib: Path = '../spectral_calibration/EN_spectral_config_2024-01-23.json'):
 
         """
         :param poly_number: номер полихроматора в стойке!
@@ -59,14 +24,33 @@ class Polychromator:
 
         self.poly_number = poly_number
         self.fiber_number = fiber_number
+
         self.__signals = caen_data
         self.__signals_time = caen_time
+
         self.__expected_data = None
         self.__config = config
 
-    def signal_integrals(self, shots_before_plasma: int = 9, shots_after: int = 15,
-                         number_of_ch: int = 5, t_step: float = 0.325):
+        with open(spectral_calib, 'r') as spec_file:
+            self.spectral_calibration = json.load(spec_file)['poly_ind_%d' % self.poly_number]
 
+        with open(absolut_calib, 'r') as absolut_file:
+            self.abs_calib = json.load(absolut_file)['fibers_A'][self.fiber_number-1]
+
+        self.temperatures = []
+        self.density = []
+
+
+    def get_signal_integrals(self, shots_before_plasma: int = 9, shots_after: int = 15,
+                             number_of_ch: int = 5, t_step: float = 0.325):
+        """
+        RETURNS PHE
+        :param shots_before_plasma:
+        :param shots_after:
+        :param number_of_ch:
+        :param t_step:
+        :return:
+        """
         q_e = 1.6E-19
         M_gain = 1E2
         R_gain = 1E4
@@ -115,9 +99,10 @@ class Polychromator:
                                                       self.__config[poly_ch]['sig_RightBord'])]
 
                 signal_integral = sum(self.__signals[poly_ch][shot][signal_indices[0]:signal_indices[1]]) * t_step
+
                 all_ch_signal.append(signal_integral * all_const)
-                all_ch_noise.append(statistics.stdev(self.__signals[poly_ch][shot][:200]) * t_step * all_const * (
-                        signal_indices[1] - signal_indices[0]))
+                all_ch_noise.append(statistics.stdev(self.__signals[poly_ch][shot][:200]) * all_const * t_step *
+                                    (signal_indices[1] - signal_indices[0]))
 
                 # print('signal', round(signal_integral * all_const, 2),
                 #       'noise', round(statistics.stdev(self.__signals[poly_ch][shot][:200]) * t_step * all_const *
@@ -126,9 +111,64 @@ class Polychromator:
             all_shots_signal.append(all_ch_signal)
             all_shots_noise.append(all_ch_noise)
 
-            # print()
-
         return all_shots_signal, all_shots_noise
+
+
+    def get_temperatures(self, print_flag = False):
+        """
+        GIVES TEMPERATURE LIST
+        :return:
+        """
+        fe_data = self.get_expected_fe()
+        signals, noises = self.get_signal_integrals()
+
+        results = []
+        for shot, noise in zip(signals, noises):
+            ans = []
+            for index, (T_e, f_e) in enumerate(fe_data.items()):
+                khi = 0
+                if index >= 2:
+
+                    sum_1 = 0
+                    for ch in range(3):
+                        sum_1 += shot[ch] * (f_e[ch] * self.spectral_calibration[ch]) / noise[ch] ** 2
+
+                    sum_2 = 0
+                    for ch in range(3):
+                        sum_2 += (f_e[ch] * self.spectral_calibration[ch]) ** 2 / noise[ch] ** 2
+
+                    for ch in range(3):
+                        khi += (shot[ch] - sum_1 * (f_e[ch] * self.spectral_calibration[ch]) / sum_2) ** 2 / noise[ch] ** 2
+                    ans.append({T_e: khi})
+
+            results.append(ans)
+
+        for shot in results:
+            sort = sorted(shot, key=lambda x: list(x.values())[0])
+            for T in sort[0].keys():
+                self.temperatures.append(T)
+                if print_flag:
+                    print(T, end=' ')
+        print()
+
+    def get_density(self, print_flag=False):
+        laser_energy = 1.5
+        fe_data = self.get_expected_fe()
+        signals, noises = self.get_signal_integrals()
+        elector_radius = 6.652E-29
+
+        for shot, noise, T_e in zip(signals, noises, self.temperatures):
+            sum_numerator = 0
+            sum_divider = 0
+            for ch in range(5):
+                sum_numerator += shot[ch] * (fe_data[T_e][ch] * self.spectral_calibration[ch]) / noise[ch] ** 2
+                sum_divider += (fe_data[T_e][ch] * self.spectral_calibration[ch]) ** 2 / noise[ch] ** 2
+
+            self.density.append(sum_numerator / (sum_divider * laser_energy * self.abs_calib * elector_radius))
+            if print_flag:
+                print('%.2e' % (sum_numerator / (sum_divider * laser_energy * self.abs_calib * elector_radius)), end=' ')
+        #print()
+
 
     @staticmethod
     def rude_pestCheck(signals_before_plasma, start_ind: int = 500, end_ind: int = 700, t_step: float = 0.325):
@@ -152,111 +192,82 @@ class Polychromator:
     def signal_approx(self):
         pass
 
-    def set_expected_data(self):
-        pass
+    @staticmethod
+    def get_expected_fe(path: str = '../temperature_estimation/f_e.json'):
+        with open(path, 'r') as f_file:
+            fe_data = json.load(f_file)
+        return fe_data
 
     def plot_expected(self):
         pass
 
-    def get_row_data(self, shot_num: int = None, ch_num: int = None):
+    def plot_rawSignals(self, from_shot: int = 10, to_shot: int = 20):
+        fig, ax = plt.subplots(nrows=5, ncols=1, figsize=(13, 8))
+
+        for ch in range(5):
+            for shot in range(from_shot, to_shot):
+                time, signal = self.get_raw_data(shot_num=shot, ch_num=ch)
+                ax[ch].plot(time, signal, label='shot %d' % shot)
+                ax[ch].set_xlim([0, 80])
+        ax[0].legend(ncol=3)
+        plt.subplots_adjust(left=0.05, right=0.95, top=0.93, bottom=0.07)
+        plt.show()
+
+    def get_raw_data(self, shot_num: int = None, ch_num: int = None):
         if ch_num is None and shot_num is None:
             return self.__signals_time, self.__signals
         return self.__signals_time[shot_num], self.__signals[ch_num][shot_num]
 
 
-msg_files_num_x10 = [4, 5, 6, 7]
-discharge_num = '43256'
-
-all_caens = []
-for msg_num in msg_files_num_x10:
-    # path = Path('C:\TS_data\\DTS_summer_2023\%s\%s.msgpk' % (discharge_num, msg_num))
-    path = Path('D:\Ioffe\TS\divertor_thomson\measurements\\%s\\%s.msgpk' % (discharge_num, msg_num))
-    times, caen_data = caen_msg_handler(path)
-    all_caens.append({'caen_num': msg_num,
-                      'shots_time': times,
-                      'caen_channels': caen_data})
 
 with open('сonfig') as file:
     config_data = json.load(file)
+discharge_num = '43256'
+
+
+all_caens = handle_all_caens(discharge_num=discharge_num)
+
 
 poly_0 = Polychromator(poly_number=0, fiber_number=1,
-                       config=config_data['equator_caens'][4]['channels'][1:6], absolut_calib=None,
+                       config=config_data['equator_caens'][4]['channels'][1:6],
                        caen_time=all_caens[0]['shots_time'], caen_data=all_caens[0]['caen_channels'][1:6])
 
 poly_1 = Polychromator(poly_number=1, fiber_number=2,
-                       config=config_data['equator_caens'][4]['channels'][6:11], absolut_calib=None,
+                       config=config_data['equator_caens'][4]['channels'][6:11],
                        caen_time=all_caens[0]['shots_time'], caen_data=all_caens[0]['caen_channels'][6:11])
 
 poly_2 = Polychromator(poly_number=2, fiber_number=3,
-                       config=config_data['equator_caens'][4]['channels'][11:16], absolut_calib=None,
+                       config=config_data['equator_caens'][4]['channels'][11:16],
                        caen_time=all_caens[0]['shots_time'], caen_data=all_caens[0]['caen_channels'][11:16])
 
 poly_3 = Polychromator(poly_number=3, fiber_number=4,
-                       config=config_data['equator_caens'][5]['channels'][1:6], absolut_calib=None,
+                       config=config_data['equator_caens'][5]['channels'][1:6],
                        caen_time=all_caens[1]['shots_time'], caen_data=all_caens[1]['caen_channels'][1:6])
 
 poly_4 = Polychromator(poly_number=4, fiber_number=5,
-                       config=config_data['equator_caens'][5]['channels'][6:11], absolut_calib=None,
+                       config=config_data['equator_caens'][5]['channels'][6:11],
                        caen_time=all_caens[1]['shots_time'], caen_data=all_caens[1]['caen_channels'][6:11])
 
 poly_5 = Polychromator(poly_number=5, fiber_number=7,
-                       config=config_data['equator_caens'][7]['channels'][6:11], absolut_calib=None,
-                       caen_time=all_caens[3]['shots_time'], caen_data=all_caens[3]['caen_channels'][6:11])
-
-poly_6 = Polychromator(poly_number=6, fiber_number=8,
-                       config=config_data['equator_caens'][5]['channels'][11:16], absolut_calib=None,
+                       config=config_data['equator_caens'][7]['channels'][6:11],
                        caen_time=all_caens[1]['shots_time'], caen_data=all_caens[1]['caen_channels'][11:16])
 
-poly_7 = Polychromator(poly_number=7, fiber_number=9,
-                       config=config_data['equator_caens'][6]['channels'][1:6], absolut_calib=None,
+poly_6 = Polychromator(poly_number=6, fiber_number=8,
+                       config=config_data['equator_caens'][5]['channels'][11:16],
                        caen_time=all_caens[2]['shots_time'], caen_data=all_caens[2]['caen_channels'][1:6])
 
+poly_7 = Polychromator(poly_number=7, fiber_number=9,
+                       config=config_data['equator_caens'][6]['channels'][1:6],
+                       caen_time=all_caens[2]['shots_time'], caen_data=all_caens[2]['caen_channels'][6:11])
+
 poly_10 = Polychromator(poly_number=10, fiber_number=6,
-                        config=config_data['equator_caens'][6]['channels'][6:11], absolut_calib=None,
-                        caen_time=all_caens[2]['shots_time'], caen_data=all_caens[2]['caen_channels'][6:11])
+                        config=config_data['equator_caens'][6]['channels'][6:11],
+                        caen_time=all_caens[3]['shots_time'], caen_data=all_caens[3]['caen_channels'][6:11])
 
-fig, ax = plt.subplots(nrows=5, ncols=1, figsize=(13, 8))
-plt.xlim([0, 100])
-for ch in range(5):
-    for shot in range(20, 25):
-        time, signal = poly_4.get_row_data(shot_num=shot, ch_num=ch)
-        ax[ch].plot(time, signal, label='shot %d' % shot)
-        ax[ch].set_xlim([0, 80])
-    ax[ch].legend()
 
-plt.show()
+fibers = [poly_0, poly_1, poly_2, poly_3, poly_4, poly_10, poly_5, poly_6, poly_7]
 
-all_polys = [poly_0, poly_1, poly_2, poly_3, poly_4, poly_10, poly_5, poly_6, poly_7]
-with open('../temperature_estimation/f_e.json', 'r') as f_file:
-    fe_data = json.load(f_file)
+for fiber in fibers[1:]:
+    fiber.get_temperatures()
+    fiber.get_density(print_flag=True)
 
-for poly in all_polys[1:]:
-    signals, noises = poly.signal_integrals()
-
-    results = []
-    for shot, noise in zip(signals, noises):
-        ans = []
-        for index, (T_e, f_e) in enumerate(fe_data.items()):
-            khi = 0
-            if index >= 2:
-
-                sum_1 = 0
-                for ch in range(3):
-                    sum_1 += shot[ch] * f_e[ch] / noise[ch] ** 2
-
-                sum_2 = 0
-                for ch in range(3):
-                    sum_2 += f_e[ch] ** 2 / noise[ch] ** 2
-
-                for ch in range(3):
-                    khi += (shot[ch] - sum_1 * f_e[ch] / sum_2) ** 2 / noise[ch] ** 2
-                ans.append({T_e: khi})
-
-        results.append(ans)
-
-    for shot in results:
-        sort = sorted(shot, key=lambda x: list(x.values())[0])
-        for T in sort[0].keys():
-            print(T, end=' ')
-
-    print()

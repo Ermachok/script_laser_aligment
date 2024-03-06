@@ -632,9 +632,9 @@
         },
         {
           "caen_ch": 6,
-          "poly": 1,
+          "poly": 10,
           "poly_sp_ch": 1,
-          "dtr_fiber": 2,
+          "dtr_fiber": 6,
           "sig_LeftBord": 23,
           "sig_RightBord": 38,
           "pest_LeftBord": 36,
@@ -642,7 +642,7 @@
         },
         {
           "caen_ch": 7,
-          "poly": 1,
+          "poly": 10,
           "poly_sp_ch": 2,
           "dtr_fiber": 2,
           "sig_LeftBord": 25,
@@ -652,7 +652,7 @@
         },
         {
           "caen_ch": 8,
-          "poly": 1,
+          "poly": 10,
           "poly_sp_ch": 3,
           "dtr_fiber": 2,
           "sig_LeftBord": 27,
@@ -662,7 +662,7 @@
         },
         {
           "caen_ch": 9,
-          "poly": 1,
+          "poly": 10,
           "poly_sp_ch": 4,
           "dtr_fiber": 2,
           "sig_LeftBord": 29,
@@ -672,7 +672,7 @@
         },
         {
           "caen_ch": 10,
-          "poly": 1,
+          "poly": 10,
           "poly_sp_ch": 5,
           "dtr_fiber": 2,
           "sig_LeftBord": 31,

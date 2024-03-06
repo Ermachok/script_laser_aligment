@@ -35,7 +35,7 @@ def f_e_calc(avalanche_Path, filter_Path):
     avalanche_wl, avalanche_phe = get_avalanche_data(avalanche_Path)
     filters_wl, filters_transm = get_filters_data(filter_Path, filters_transposed=True)
     wl_grid = [700 + 0.2 * step for step in range(1825)]
-    Te_grid = [1 + 0.5 * step for step in range(200)]
+    Te_grid = [1 + 0.5 * step for step in range(300)]
     result = {'wl_grid': wl_grid,
               'Te_grid': Te_grid}
     for T in Te_grid:
@@ -53,7 +53,7 @@ def f_e_calc(avalanche_Path, filter_Path):
         json.dump(result, f_file, indent=4)
 
 
-#f_e_calc(avalanche_Path, filter_Path)
+f_e_calc(avalanche_Path, filter_Path)
 
 
 
