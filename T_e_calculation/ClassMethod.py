@@ -268,6 +268,6 @@ poly_10 = Polychromator(poly_number=10, fiber_number=6,
 fibers = [poly_0, poly_1, poly_2, poly_3, poly_4, poly_10, poly_5, poly_6, poly_7]
 
 for fiber in fibers[1:]:
-    fiber.get_temperatures()
-    fiber.get_density(print_flag=True)
+    fiber.get_temperatures(print_flag=True)
+    fiber.get_density(print_flag=False)
 

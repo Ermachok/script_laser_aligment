@@ -76,8 +76,9 @@ def load_calibration_phe(phe_file_path, laser_ophir_path):
     for poly in range(1, 10):
         temp_data = []
         for shot in range(1, len(calibration_data)):
+            laser_energy  = float(laser_data[shot - 1].split()[1]) / ophir_to_J
             temp_data.append(
-                float(calibration_data[shot].split(',')[poly]) * ophir_to_J / float(laser_data[shot - 1].split()[1]))
+                float(calibration_data[shot].split(',')[poly]) / laser_energy)
         all_polys.append(temp_data)
     return all_polys
 
@@ -138,7 +139,7 @@ if __name__ == '__main__':
             integral += y * filter * detector
         for ch in range(1):
             calibration = statistics.median(calib_phe_to_laser[fiber-1][:300])
-            all_channels.append(calibration / (integral * n))
+            all_channels.append(calibration / 100 / (integral * n))
         all_fibers['fib_{}'.format(fiber)] = all_channels
 
     for x in all_fibers.values():
