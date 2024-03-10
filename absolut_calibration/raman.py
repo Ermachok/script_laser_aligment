@@ -20,7 +20,7 @@ def linear_interpolation(x_point: float, Xdata: list, Ydata: list) -> float:
         raise Exception
     else:
         y_point = Ydata[ind_1] + (Ydata[ind_2] - Ydata[ind_1]) / (Xdata[ind_2] - Xdata[ind_1]) * (
-                    x_point - Xdata[ind_1])
+                x_point - Xdata[ind_1])
         # print(Xdata[ind_1], Ydata[ind_1], Xdata[ind_2], Ydata[ind_2], x_point, y_point)
         return y_point
 
@@ -76,7 +76,7 @@ def load_calibration_phe(phe_file_path, laser_ophir_path):
     for poly in range(1, 10):
         temp_data = []
         for shot in range(1, len(calibration_data)):
-            laser_energy  = float(laser_data[shot - 1].split()[1]) / ophir_to_J
+            laser_energy = float(laser_data[shot - 1].split()[1]) / ophir_to_J
             temp_data.append(
                 float(calibration_data[shot].split(',')[poly]) / laser_energy)
         all_polys.append(temp_data)
@@ -85,14 +85,11 @@ def load_calibration_phe(phe_file_path, laser_ophir_path):
 
 if __name__ == '__main__':
 
-    avalanche_Path = (r'D:\Ioffe\TS\divertor_thomson\different_calcuations_py\DTS_main\script'
-                      r'\spectral_calibration\aw.csv')
+    avalanche_Path = r'..\spectral_calibration\aw.csv'
 
-    filter_Path = (r'D:\Ioffe\TS\divertor_thomson\different_calcuations_py\DTS_main\script\spectral_calibration'
-                   r'\filters_equator.csv')
+    filter_Path = r'..\spectral_calibration\filters_equator.csv'
 
-    spectral_calibration_Path = (r'D:\Ioffe\TS\divertor_thomson\different_calcuations_py\DTS_main\script'
-                                 r'\spectral_calibration\EN_spectral_config_2024-02-15.json')
+    spectral_calibration_Path = r'..\spectral_calibration\EN_spectral_config_2024-02-15.json'
 
     k_bolt = 1.38E-23  # J/K
     gas_temperature = 23.4 + 273.15  # K
@@ -101,13 +98,16 @@ if __name__ == '__main__':
     filters_wl, filters_transm = get_filters_data(filter_Path, filters_transposed=True)
     raman_wl, raman_section = get_raman_wl_section(gas_temperature=gas_temperature, las_wl=1064.4E-9)
 
-    calib_phe_to_laser = load_calibration_phe('D:/Ioffe/TS/divertor_thomson/calibration'
-                                              '/16.06.2023/caen_files/00846/1ch_scat_Nphe_00846.csv',
-                                              r'D:\Ioffe\TS\divertor_thomson\calibration'
-                                              r'\16.06.2023\caen_files\00846\ophir_7564_corrected.dat')
+    # calib_phe_to_laser = load_calibration_phe('D:/Ioffe/TS/divertor_thomson/calibration'
+    #                                           '/16.06.2023/caen_files/00846/1ch_scat_Nphe_00846.csv',
+    #                                           r'D:\Ioffe\TS\divertor_thomson\calibration'
+    #                                           r'\16.06.2023\caen_files\00846\ophir_7564_corrected.dat')
 
-    #with open('../spectral_calibration/EN_spectral_config_2024-01-23.json') as spectral_file:
-        #spectral_calibration_data = json.load(spectral_file)
+    # with open('../spectral_calibration/EN_spectral_config_2024-01-23.json') as spectral_file:
+    # spectral_calibration_data = json.load(spectral_file)
+
+    with open('Phe_to_laser') as calib_file:
+        calib_data = json.load(calib_file)
 
     p_torr = 80  # Tor
     p_pascal = p_torr * 133.3  # pascal
@@ -127,8 +127,8 @@ if __name__ == '__main__':
 
     all_fibers = {}
     for fiber in fiber_poly.keys():
-        #poly_ind = 'poly_ind_{}'.format(fiber_poly[fiber])
-        #kappa_list = spectral_calibration_data[poly_ind]
+        # poly_ind = 'poly_ind_{}'.format(fiber_poly[fiber])
+        # kappa_list = spectral_calibration_data[poly_ind]
         integral = 0
         all_channels = []
         for x, y in zip(raman_wl, raman_section):
@@ -137,10 +137,12 @@ if __name__ == '__main__':
             detector = linear_interpolation(x, avalanche_wl, avalanche_phe)
 
             integral += y * filter * detector
-        for ch in range(1):
-            calibration = statistics.median(calib_phe_to_laser[fiber-1][:300])
-            all_channels.append(calibration / 100 / (integral * n))
+
+        # for ch in range(1):
+        #     calibration = statistics.median(calib_phe_to_laser[fiber-1][:300])
+        calibPhe_to_laser = calib_data['fibers'][fiber - 1]
+        all_channels.append(calibPhe_to_laser / (integral * n))
         all_fibers['fib_{}'.format(fiber)] = all_channels
 
     for x in all_fibers.values():
-        print('%f'%x[0]+',')
+        print('%f' % x[0] + ',')

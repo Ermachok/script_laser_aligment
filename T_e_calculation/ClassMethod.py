@@ -3,7 +3,7 @@ import json
 import matplotlib.pyplot as plt
 import bisect
 import statistics
-from T_e_calculation.utilities.masg_handler import handle_all_caens
+from T_e_calculation.utilities.msg_handler import handle_all_caens
 import time
 
 
@@ -35,11 +35,13 @@ class Polychromator:
             self.spectral_calibration = json.load(spec_file)['poly_ind_%d' % self.poly_number]
 
         with open(absolut_calib, 'r') as absolut_file:
-            self.abs_calib = json.load(absolut_file)['fibers_A'][self.fiber_number-1]
+            self.abs_calib = json.load(absolut_file)['fibers_A'][self.fiber_number - 1]
+
+        self.integralsPhe = []
+        self.noisePhe = []
 
         self.temperatures = []
         self.density = []
-
 
     def get_signal_integrals(self, shots_before_plasma: int = 9, shots_after: int = 15,
                              number_of_ch: int = 5, t_step: float = 0.325):
@@ -111,10 +113,12 @@ class Polychromator:
             all_shots_signal.append(all_ch_signal)
             all_shots_noise.append(all_ch_noise)
 
+        self.integralsPhe = all_shots_signal.copy()
+        self.noisePhe = all_shots_noise.copy()
+
         return all_shots_signal, all_shots_noise
 
-
-    def get_temperatures(self, print_flag = False):
+    def get_temperatures(self, print_flag=False):
         """
         GIVES TEMPERATURE LIST
         :return:
@@ -138,7 +142,8 @@ class Polychromator:
                         sum_2 += (f_e[ch] * self.spectral_calibration[ch]) ** 2 / noise[ch] ** 2
 
                     for ch in range(3):
-                        khi += (shot[ch] - sum_1 * (f_e[ch] * self.spectral_calibration[ch]) / sum_2) ** 2 / noise[ch] ** 2
+                        khi += (shot[ch] - sum_1 * (f_e[ch] * self.spectral_calibration[ch]) / sum_2) ** 2 / noise[
+                            ch] ** 2
                     ans.append({T_e: khi})
 
             results.append(ans)
@@ -148,10 +153,12 @@ class Polychromator:
             for T in sort[0].keys():
                 self.temperatures.append(T)
                 if print_flag:
-                    print(T, end=' ')
-        print()
+                    print(round(float(T), 2), end=' ')
+        if print_flag:
+            print()
 
     def get_density(self, print_flag=False):
+
         laser_energy = 1.5
         fe_data = self.get_expected_fe()
         signals, noises = self.get_signal_integrals()
@@ -160,15 +167,47 @@ class Polychromator:
         for shot, noise, T_e in zip(signals, noises, self.temperatures):
             sum_numerator = 0
             sum_divider = 0
-            for ch in range(5):
+            for ch in range(3):
                 sum_numerator += shot[ch] * (fe_data[T_e][ch] * self.spectral_calibration[ch]) / noise[ch] ** 2
                 sum_divider += (fe_data[T_e][ch] * self.spectral_calibration[ch]) ** 2 / noise[ch] ** 2
 
             self.density.append(sum_numerator / (sum_divider * laser_energy * self.abs_calib * elector_radius))
             if print_flag:
-                print('%.2e' % (sum_numerator / (sum_divider * laser_energy * self.abs_calib * elector_radius)), end=' ')
-        #print()
+                print('%.2e' % (sum_numerator / (sum_divider * laser_energy * self.abs_calib * elector_radius)),
+                      end=' ')
+        if print_flag:
+            print()
 
+
+    def calculate_errors(self):
+        laser_energy = 1.5
+        ch_nums = 3
+        electron_radius = 6.6e-29
+
+        fe_data = self.get_expected_fe()
+        try:
+            for shot_noise, T_e in zip(self.noisePhe[10:20], self.temperatures[10:20]):
+                shot_num = self.noisePhe.index(shot_noise)
+                print('shot num', shot_num)
+                T_e_ind = fe_data['Te_grid'].index(float(T_e))
+                T_e_next = str(fe_data['Te_grid'][T_e_ind + 1])
+
+                sum_fe_to_noise = 0
+                sum_derivative_fe_to_noise = 0
+                sum_fe_derivative_fe_to_noise = 0
+                for ch in range(ch_nums):
+                    sum_fe_to_noise += (fe_data[T_e][ch] / shot_noise[ch]) ** 2
+                    T_e_step = float(T_e_next) - float(T_e)
+                    sum_derivative_fe_to_noise += ((fe_data[T_e][ch] - fe_data[T_e_next][ch]) / T_e_step / shot_noise[ch])**2
+                    sum_fe_derivative_fe_to_noise += ((fe_data[T_e][ch] - fe_data[T_e_next][ch])/T_e_step * fe_data[T_e][ch]
+                                                      / shot_noise[ch] ** 2) ** 2
+
+                #print(sum_fe_to_noise, sum_derivative_fe_to_noise, sum_fe_derivative_fe_to_noise)
+                M_errT = sum_fe_to_noise / ((sum_fe_to_noise * sum_derivative_fe_to_noise) - sum_fe_derivative_fe_to_noise)
+                print(T_e ,M_errT / electron_radius**2 / (self.abs_calib * self.density[shot_num] * laser_energy) ** 2)
+        except ZeroDivisionError or IndexError:
+            print('Error')
+            pass
 
     @staticmethod
     def rude_pestCheck(signals_before_plasma, start_ind: int = 500, end_ind: int = 700, t_step: float = 0.325):
@@ -198,6 +237,18 @@ class Polychromator:
             fe_data = json.load(f_file)
         return fe_data
 
+    def get_expected_phe(self):
+        f_e = self.get_expected_fe()
+        from_shot = 10
+        to_shot = 20
+        for shot, T_e, n_e in zip(self.integralsPhe[from_shot:to_shot],
+                                  self.temperatures[from_shot:to_shot],
+                                  self.density[from_shot:to_shot]):
+
+            print(self.integralsPhe.index(shot), end='  ')
+            print(T_e, n_e, 'got ', shot[0], 'expected', self.abs_calib * f_e[T_e][0] * 6.6e-29 * 1.5 * n_e,
+                  'got', shot[1], 'expected', self.abs_calib * f_e[T_e][1] * 6.6e-29 * 1.5 * n_e)
+
     def plot_expected(self):
         pass
 
@@ -219,14 +270,11 @@ class Polychromator:
         return self.__signals_time[shot_num], self.__signals[ch_num][shot_num]
 
 
-
 with open('сonfig') as file:
     config_data = json.load(file)
 discharge_num = '43256'
 
-
 all_caens = handle_all_caens(discharge_num=discharge_num)
-
 
 poly_0 = Polychromator(poly_number=0, fiber_number=1,
                        config=config_data['equator_caens'][4]['channels'][1:6],
@@ -249,25 +297,30 @@ poly_4 = Polychromator(poly_number=4, fiber_number=5,
                        caen_time=all_caens[1]['shots_time'], caen_data=all_caens[1]['caen_channels'][6:11])
 
 poly_5 = Polychromator(poly_number=5, fiber_number=7,
-                       config=config_data['equator_caens'][7]['channels'][6:11],
+                       config=config_data['equator_caens'][5]['channels'][11:16],
                        caen_time=all_caens[1]['shots_time'], caen_data=all_caens[1]['caen_channels'][11:16])
 
 poly_6 = Polychromator(poly_number=6, fiber_number=8,
-                       config=config_data['equator_caens'][5]['channels'][11:16],
+                       config=config_data['equator_caens'][6]['channels'][1:6],
                        caen_time=all_caens[2]['shots_time'], caen_data=all_caens[2]['caen_channels'][1:6])
 
 poly_7 = Polychromator(poly_number=7, fiber_number=9,
-                       config=config_data['equator_caens'][6]['channels'][1:6],
+                       config=config_data['equator_caens'][6]['channels'][6:11],
                        caen_time=all_caens[2]['shots_time'], caen_data=all_caens[2]['caen_channels'][6:11])
 
 poly_10 = Polychromator(poly_number=10, fiber_number=6,
-                        config=config_data['equator_caens'][6]['channels'][6:11],
+                        config=config_data['equator_caens'][7]['channels'][6:11],
                         caen_time=all_caens[3]['shots_time'], caen_data=all_caens[3]['caen_channels'][6:11])
 
-
 fibers = [poly_0, poly_1, poly_2, poly_3, poly_4, poly_10, poly_5, poly_6, poly_7]
-
+# print(fibers[4].get_signal_integrals()[0][11:])
 for fiber in fibers[1:]:
-    fiber.get_temperatures(print_flag=True)
+    fiber.get_temperatures(print_flag=False)
     fiber.get_density(print_flag=False)
 
+for fiber in fibers[1:]:
+    print(fiber.fiber_number)
+    fiber.calculate_errors()
+    #fiber.plot_rawSignals(from_shot=16, to_shot=20)
+    #print(fiber.fiber_number)
+    #fiber.get_expected_phe()

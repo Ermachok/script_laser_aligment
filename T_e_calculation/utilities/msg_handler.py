@@ -42,8 +42,8 @@ def handle_all_caens(discharge_num: str) -> list:
 
     all_caens = []
     for msg_num in msg_files_num_x10:
-        # path = Path('C:\TS_data\\DTS_summer_2023\%s\%s.msgpk' % (discharge_num, msg_num))
-        path = Path('D:\Ioffe\TS\divertor_thomson\measurements\\%s\\%s.msgpk' % (discharge_num, msg_num))
+        path = Path('C:\TS_data\\DTS_summer_2023\%s\%s.msgpk' % (discharge_num, msg_num))
+        #path = Path('D:\Ioffe\TS\divertor_thomson\measurements\\%s\\%s.msgpk' % (discharge_num, msg_num))
         times, caen_data = caen_msg_handler(path)
         all_caens.append({'caen_num': msg_num,
                           'shots_time': times,

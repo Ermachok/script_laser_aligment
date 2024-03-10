@@ -4,7 +4,9 @@ import math
 import json
 
 
-def spect_dens_Selden(temperature: float, wl_grid: list, theta_deg: float, lambda_0: float) -> float:
+def spect_dens_Selden(temperature: float, wl_grid: list, theta_deg: float, lambda_0: float) -> list:
+    #деление на 5 - нормировка интеграла...
+
     m_e = 9.1E-31
     c_light = 3E8
     q_elec = 1.6E-19
@@ -18,24 +20,22 @@ def spect_dens_Selden(temperature: float, wl_grid: list, theta_deg: float, lambd
         a_loc = math.pow(1 + x, 3) * math.sqrt(2 * (1 - math.cos(theta)) * (1 + x) + math.pow(x, 2))
         b_loc = math.sqrt(1 + x * x / (2 * (1 - math.cos(theta)) * (1 + x))) - 1
         c_loc = math.sqrt(alpha / math.pi) * (1 - (15 / 16) / alpha + 345 / (512 * alpha * alpha))
-        section.append((c_loc / a_loc) * math.exp(-2 * alpha * b_loc) / lambda_0)
+        section.append((c_loc / a_loc) * math.exp(-2 * alpha * b_loc) / lambda_0 / 5)
     return section
 
 
+avalanche_Path = r'..\spectral_calibration\aw.csv'
 
-
-avalanche_Path = (r'D:\Ioffe\TS\divertor_thomson\different_calcuations_py\DTS_main\script'
-                  r'\spectral_calibration\aw.csv')
-
-filter_Path = (r'D:\Ioffe\TS\divertor_thomson\different_calcuations_py\DTS_main\script\spectral_calibration'
-               r'\filters_equator.csv')
+filter_Path = r'..\spectral_calibration\filters_equator.csv'
 
 
 def f_e_calc(avalanche_Path, filter_Path):
     avalanche_wl, avalanche_phe = get_avalanche_data(avalanche_Path)
     filters_wl, filters_transm = get_filters_data(filter_Path, filters_transposed=True)
-    wl_grid = [700 + 0.2 * step for step in range(1825)]
-    Te_grid = [1 + 0.5 * step for step in range(300)]
+
+    wl_step = 0.2
+    wl_grid = [700 + wl_step * step_count for step_count in range(1825)]
+    Te_grid = [1 + 0.3 * step for step in range(1000)]
     result = {'wl_grid': wl_grid,
               'Te_grid': Te_grid}
     for T in Te_grid:
@@ -47,23 +47,32 @@ def f_e_calc(avalanche_Path, filter_Path):
                 filter = linear_interpolation(wl, filters_wl, filters_transm[filter_ch])
                 detector = linear_interpolation(wl, avalanche_wl, avalanche_phe)
                 integral += sec * filter * detector
-            all_filters.append(round(integral, 4))
+            all_filters.append(round(integral * wl_step, 5))
         result[T] = all_filters
     with open('f_e.json', 'w') as f_file:
         json.dump(result, f_file, indent=4)
+
+
+# wl_grid = [700 + 0.2 * step for step in range(6825)]
+# section = spect_dens_Selden(20, wl_grid, 110, 1064.4)
+
+# for wl, sec in zip(wl_grid, section):
+#     print(wl, sec)
+#
+# print(sum(section))
 
 
 f_e_calc(avalanche_Path, filter_Path)
 
 
 
-with open('f_e.json', 'r') as f_file:
-    data = json.load(f_file)
-
-for index, (key, value) in enumerate(data.items()):
-    if index >= 2:
-        try:
-            print(key, value[0]/value[1], value[0]/value[2])
-            #print](value[0/value[1])
-        except ZeroDivisionError:
-            pass
+# with open('f_e.json', 'r') as f_file:
+#     data = json.load(f_file)
+#
+# for index, (key, value) in enumerate(data.items()):
+#     if index >= 2:
+#         try:
+#             print(key, value[0] / value[1], value[0] / value[2])
+#             # print](value[0/value[1])
+#         except ZeroDivisionError:
+#             pass
