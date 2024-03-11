@@ -1,3 +1,4 @@
+import math
 from pathlib import Path
 import json
 import matplotlib.pyplot as plt
@@ -179,32 +180,40 @@ class Polychromator:
             print()
 
 
-    def calculate_errors(self):
+    def get_errors(self):
         laser_energy = 1.5
-        ch_nums = 3
+        ch_nums = 5
         electron_radius = 6.6e-29
 
         fe_data = self.get_expected_fe()
         try:
             for shot_noise, T_e in zip(self.noisePhe[10:20], self.temperatures[10:20]):
                 shot_num = self.noisePhe.index(shot_noise)
-                print('shot num', shot_num)
+                print(shot_num, end=' ')
                 T_e_ind = fe_data['Te_grid'].index(float(T_e))
                 T_e_next = str(fe_data['Te_grid'][T_e_ind + 1])
 
                 sum_fe_to_noise = 0
                 sum_derivative_fe_to_noise = 0
                 sum_fe_derivative_fe_to_noise = 0
+                T_e_step = float(T_e_next) - float(T_e)
                 for ch in range(ch_nums):
+                    derivative_fe = (fe_data[T_e][ch] - fe_data[T_e_next][ch]) / T_e_step
+
                     sum_fe_to_noise += (fe_data[T_e][ch] / shot_noise[ch]) ** 2
-                    T_e_step = float(T_e_next) - float(T_e)
-                    sum_derivative_fe_to_noise += ((fe_data[T_e][ch] - fe_data[T_e_next][ch]) / T_e_step / shot_noise[ch])**2
-                    sum_fe_derivative_fe_to_noise += ((fe_data[T_e][ch] - fe_data[T_e_next][ch])/T_e_step * fe_data[T_e][ch]
-                                                      / shot_noise[ch] ** 2) ** 2
+                    sum_derivative_fe_to_noise += (derivative_fe / shot_noise[ch])**2
+                    sum_fe_derivative_fe_to_noise += (derivative_fe * fe_data[T_e][ch] / shot_noise[ch] ** 2) ** 2
 
                 #print(sum_fe_to_noise, sum_derivative_fe_to_noise, sum_fe_derivative_fe_to_noise)
-                M_errT = sum_fe_to_noise / ((sum_fe_to_noise * sum_derivative_fe_to_noise) - sum_fe_derivative_fe_to_noise)
-                print(T_e ,M_errT / electron_radius**2 / (self.abs_calib * self.density[shot_num] * laser_energy) ** 2)
+                M_errT = sum_fe_to_noise / (sum_fe_to_noise * sum_derivative_fe_to_noise - sum_fe_derivative_fe_to_noise)
+                M_errn = sum_derivative_fe_to_noise / (sum_fe_to_noise * sum_derivative_fe_to_noise - sum_fe_derivative_fe_to_noise )
+
+                try:
+                    print(T_e ,math.sqrt(M_errT / electron_radius**2 / (self.abs_calib * self.density[shot_num] * laser_energy) ** 2),
+                          self.density[shot_num], math.sqrt(M_errn / electron_radius**2 / (self.abs_calib * laser_energy) ** 2))
+                except ValueError:
+                    print(T_e, self.density[shot_num])
+
         except ZeroDivisionError or IndexError:
             print('Error')
             pass
@@ -320,7 +329,6 @@ for fiber in fibers[1:]:
 
 for fiber in fibers[1:]:
     print(fiber.fiber_number)
-    fiber.calculate_errors()
-    #fiber.plot_rawSignals(from_shot=16, to_shot=20)
-    #print(fiber.fiber_number)
+    fiber.get_errors()
+#     #fiber.plot_rawSignals(from_shot=16, to_shot=20)
     #fiber.get_expected_phe()

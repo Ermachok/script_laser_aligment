@@ -49,7 +49,7 @@ def f_e_calc(avalanche_Path, filter_Path):
                 integral += sec * filter * detector
             all_filters.append(round(integral * wl_step, 5))
         result[T] = all_filters
-    with open('f_e.json', 'w') as f_file:
+    with open('f_e_vNone.json', 'w') as f_file:
         json.dump(result, f_file, indent=4)
 
 
