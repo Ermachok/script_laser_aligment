@@ -44,6 +44,9 @@ class Polychromator:
         self.temperatures = []
         self.density = []
 
+        self.erros_T = []
+        self.erros_n = []
+
     def get_signal_integrals(self, shots_before_plasma: int = 9, shots_after: int = 15,
                              number_of_ch: int = 5, t_step: float = 0.325):
         """
@@ -179,7 +182,6 @@ class Polychromator:
         if print_flag:
             print()
 
-
     def get_errors(self):
         laser_energy = 1.5
         ch_nums = 5
@@ -189,7 +191,7 @@ class Polychromator:
         try:
             for shot_noise, T_e in zip(self.noisePhe[10:20], self.temperatures[10:20]):
                 shot_num = self.noisePhe.index(shot_noise)
-                print(shot_num, end=' ')
+                #print(shot_num, end=' ')
                 T_e_ind = fe_data['Te_grid'].index(float(T_e))
                 T_e_next = str(fe_data['Te_grid'][T_e_ind + 1])
 
@@ -201,25 +203,31 @@ class Polychromator:
                     derivative_fe = (fe_data[T_e][ch] - fe_data[T_e_next][ch]) / T_e_step
 
                     sum_fe_to_noise += (fe_data[T_e][ch] / shot_noise[ch]) ** 2
-                    sum_derivative_fe_to_noise += (derivative_fe / shot_noise[ch])**2
+                    sum_derivative_fe_to_noise += (derivative_fe / shot_noise[ch]) ** 2
                     sum_fe_derivative_fe_to_noise += (derivative_fe * fe_data[T_e][ch] / shot_noise[ch] ** 2) ** 2
 
-                #print(sum_fe_to_noise, sum_derivative_fe_to_noise, sum_fe_derivative_fe_to_noise)
-                M_errT = sum_fe_to_noise / (sum_fe_to_noise * sum_derivative_fe_to_noise - sum_fe_derivative_fe_to_noise)
-                M_errn = sum_derivative_fe_to_noise / (sum_fe_to_noise * sum_derivative_fe_to_noise - sum_fe_derivative_fe_to_noise )
+                # print(sum_fe_to_noise, sum_derivative_fe_to_noise, sum_fe_derivative_fe_to_noise)
+                M_errT = sum_fe_to_noise / (
+                            sum_fe_to_noise * sum_derivative_fe_to_noise - sum_fe_derivative_fe_to_noise)
+
+                M_errn = sum_derivative_fe_to_noise / (
+                            sum_fe_to_noise * sum_derivative_fe_to_noise - sum_fe_derivative_fe_to_noise)
 
                 try:
-                    print(T_e ,math.sqrt(M_errT / electron_radius**2 / (self.abs_calib * self.density[shot_num] * laser_energy) ** 2),
-                          self.density[shot_num], math.sqrt(M_errn / electron_radius**2 / (self.abs_calib * laser_energy) ** 2))
-                except ValueError:
-                    print(T_e, self.density[shot_num])
+                    self.erros_T.append(math.sqrt(M_errT / electron_radius ** 2 /
+                                                  (self.abs_calib * self.density[shot_num] * laser_energy) ** 2))
 
+                    self.erros_n.append(math.sqrt(M_errn / electron_radius ** 2 /
+                                                  (self.abs_calib * laser_energy) ** 2))
+                except ValueError:
+                    self.erros_T.append(0)
+                    self.erros_n.append(0)
         except ZeroDivisionError or IndexError:
-            print('Error')
-            pass
+            self.erros_T.append(0)
+            self.erros_n.append(0)
 
     @staticmethod
-    def rude_pestCheck(signals_before_plasma, start_ind: int = 500, end_ind: int = 700, t_step: float = 0.325):
+    def rude_pest_check(signals_before_plasma, start_ind: int = 500, end_ind: int = 700, t_step: float = 0.325):
         """
         :param signals_before_plasma: количество выстрелов перед плазмой
         :param start_ind: номер ячейки из оцифровщика, с которой начинается считаться интеграл
@@ -237,6 +245,7 @@ class Polychromator:
             return True
         return False
 
+
     def signal_approx(self):
         pass
 
@@ -253,7 +262,6 @@ class Polychromator:
         for shot, T_e, n_e in zip(self.integralsPhe[from_shot:to_shot],
                                   self.temperatures[from_shot:to_shot],
                                   self.density[from_shot:to_shot]):
-
             print(self.integralsPhe.index(shot), end='  ')
             print(T_e, n_e, 'got ', shot[0], 'expected', self.abs_calib * f_e[T_e][0] * 6.6e-29 * 1.5 * n_e,
                   'got', shot[1], 'expected', self.abs_calib * f_e[T_e][1] * 6.6e-29 * 1.5 * n_e)
@@ -261,7 +269,7 @@ class Polychromator:
     def plot_expected(self):
         pass
 
-    def plot_rawSignals(self, from_shot: int = 10, to_shot: int = 20):
+    def plot_raw_signals(self, from_shot: int = 10, to_shot: int = 20):
         fig, ax = plt.subplots(nrows=5, ncols=1, figsize=(13, 8))
 
         for ch in range(5):
@@ -326,9 +334,12 @@ fibers = [poly_0, poly_1, poly_2, poly_3, poly_4, poly_10, poly_5, poly_6, poly_
 for fiber in fibers[1:]:
     fiber.get_temperatures(print_flag=False)
     fiber.get_density(print_flag=False)
+    fiber.get_errors()
 
 for fiber in fibers[1:]:
-    print(fiber.fiber_number)
-    fiber.get_errors()
+    #for T_e, T_er in zip(fiber.temperatures[10:20], fiber.erros_T):
+    for T_e, T_er in zip(fiber.density[10:20], fiber.erros_n):
+        print(T_e, T_er, end=' ')
+    print()
 #     #fiber.plot_rawSignals(from_shot=16, to_shot=20)
-    #fiber.get_expected_phe()
+# fiber.get_expected_phe()
