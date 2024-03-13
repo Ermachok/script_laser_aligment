@@ -40,6 +40,7 @@ class Polychromator:
 
         self.integralsPhe = []
         self.noisePhe = []
+        self.average_parasite = None
 
         self.temperatures = []
         self.density = []
@@ -68,45 +69,25 @@ class Polychromator:
         A = q_e * M_gain * R_gain * G_magic * divider * gain_out
         all_const = mV_2_V * ns_2_s / A
 
-        # for poly_ch in range(number_of_ch):
-        # print('\nFiber number {fiber}\nChannel number {channel}'.format(fiber=self.fiber_number,
-        #                                                                 channel=poly_ch + 1))
-        # pestCheck = self.rude_pestCheck(self.__signals[poly_ch][1:shots_before_plasma])
 
-        # if pestCheck:
-        #     average_parasite = 0
-        #     for shot in range(1, shots_before_plasma):
-        #         parasite_indices = [
-        #             bisect.bisect_left(self.__signals_time[shot], self.__config[poly_ch]['pest_LeftBord']),
-        #             bisect.bisect_right(self.__signals_time[shot], self.__config[poly_ch]['pest_RightBord'])]
-        #
-        #         average_parasite += sum(
-        #             self.__signals[poly_ch][shot][parasite_indices[0]:parasite_indices[1]]) * t_step
-        #
-        #     average_parasite = average_parasite / (shots_before_plasma - 1)
-        # print('Average integral parasite(before plasma) {} mV*ns'.format(average_parasite))
-        # for shot in range(shots_before_plasma, shots_before_plasma + shots_after):
-        #     signal_indices = [bisect.bisect_left(self.__signals_time[shot], self.__config[poly_ch]['sig_LeftBord']),
-        #                        bisect.bisect_right(self.__signals_time[shot], self.__config[poly_ch]['sig_RightBord'])]
-        #     signal_integral = sum(self.__signals[poly_ch][shot][signal_indices[0]:signal_indices[1]]) * t_step
-        # pass
-
-        # print('\nIntegrals mV * ns')
-        # print('\nIntegrals phe')
         all_shots_signal = []
         all_shots_noise = []
         for shot in range(1, shots_before_plasma + shots_after):
-            # print(shot, end=' ')
+            #print(shot, end=' ')
             all_ch_signal = []
             all_ch_noise = []
             for poly_ch in range(number_of_ch):
+                self.average_parasite = self.rude_pest_check(self.__signals[poly_ch][1:shots_before_plasma])
                 signal_indices = [bisect.bisect_left(self.__signals_time[shot], self.__config[poly_ch]['sig_LeftBord']),
                                   bisect.bisect_right(self.__signals_time[shot],
                                                       self.__config[poly_ch]['sig_RightBord'])]
 
                 signal_integral = sum(self.__signals[poly_ch][shot][signal_indices[0]:signal_indices[1]]) * t_step
+                if self.average_parasite:
+                    all_ch_signal.append((signal_integral - self.average_parasite) * all_const)
+                else:
+                    all_ch_signal.append(signal_integral * all_const)
 
-                all_ch_signal.append(signal_integral * all_const)
                 all_ch_noise.append(statistics.stdev(self.__signals[poly_ch][shot][:200]) * all_const * t_step *
                                     (signal_indices[1] - signal_indices[0]))
 
@@ -138,14 +119,14 @@ class Polychromator:
                 if index >= 2:
 
                     sum_1 = 0
-                    for ch in range(3):
+                    for ch in range(5):
                         sum_1 += shot[ch] * (f_e[ch] * self.spectral_calibration[ch]) / noise[ch] ** 2
 
                     sum_2 = 0
-                    for ch in range(3):
+                    for ch in range(5):
                         sum_2 += (f_e[ch] * self.spectral_calibration[ch]) ** 2 / noise[ch] ** 2
 
-                    for ch in range(3):
+                    for ch in range(5):
                         khi += (shot[ch] - sum_1 * (f_e[ch] * self.spectral_calibration[ch]) / sum_2) ** 2 / noise[
                             ch] ** 2
                     ans.append({T_e: khi})
@@ -240,11 +221,13 @@ class Polychromator:
             pestSum += sum(shot[start_ind:end_ind])
         pest = pestSum / len(signals_before_plasma) * t_step
         if pest > 100:
-            print('Average summ in pest area: {pest} mV * ns\n'
-                  'There is a chance of a parasite existing'.format(pest=pest))
-            return True
+            #print('Average summ in pest area: {pest} mV * ns\n'
+                  #'There is a chance of a parasite existing'.format(pest=pest))
+            return pest
         return False
 
+    def rude_pest_est(signals_before_plasma, start_ind: int = 500, end_ind: int = 700, t_step: float = 0.325):
+        pass
 
     def signal_approx(self):
         pass
@@ -333,13 +316,22 @@ fibers = [poly_0, poly_1, poly_2, poly_3, poly_4, poly_10, poly_5, poly_6, poly_
 # print(fibers[4].get_signal_integrals()[0][11:])
 for fiber in fibers[1:]:
     fiber.get_temperatures(print_flag=False)
-    fiber.get_density(print_flag=False)
-    fiber.get_errors()
+    fiber.get_density(print_flag=True)
+#     fiber.get_errors()
 
-for fiber in fibers[1:]:
+# for fiber in fibers[1:2]:
+#     print(fiber.fiber_number)
+#     fiber.get_signal_integrals()
     #for T_e, T_er in zip(fiber.temperatures[10:20], fiber.erros_T):
-    for T_e, T_er in zip(fiber.density[10:20], fiber.erros_n):
-        print(T_e, T_er, end=' ')
-    print()
-#     #fiber.plot_rawSignals(from_shot=16, to_shot=20)
-# fiber.get_expected_phe()
+    # for T_e, T_er in zip(fiber.density[10:20], fiber.erros_n):
+    #     print(T_e, T_er, end=' ')
+    # print()
+    #fiber.plot_raw_signals(from_shot=13, to_shot=17)
+    # print(fiber.fiber_number)
+    # for sig_ch1, sig_ch2 in zip(fiber.get_raw_data(shot_num=12, ch_num=0)[1], fiber.get_raw_data(shot_num=12, ch_num=1)[1]):
+    #     print(sig_ch1, sig_ch2)
+
+
+
+
+
