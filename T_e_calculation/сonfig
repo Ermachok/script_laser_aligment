@@ -101,7 +101,7 @@
           "poly_sp_ch": 1,
           "dtr_fiber": 2,
           "sig_LeftBord": 23,
-          "sig_RightBord": 38,
+          "sig_RightBord": 37,
           "pest_LeftBord": 35,
           "pest_RightBord": 53,
           "sig_MaxBord": [
@@ -115,7 +115,7 @@
           "poly_sp_ch": 2,
           "dtr_fiber": 2,
           "sig_LeftBord": 26,
-          "sig_RightBord": 42,
+          "sig_RightBord": 40,
           "pest_LeftBord": 0,
           "pest_RightBord": 0,
           "sig_MaxBord": [
